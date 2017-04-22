@@ -5,6 +5,7 @@ This is a repo for a crowd simulator project. It is developed as part of the IA5
 ## Dependencies
 This project uses Arakhnê.org's AFC math and utils library. You can install it manually or as a Maven dependency.
 
+```
 <dependencies>
   	<dependency>
   		<groupId>org.arakhne.afc.core</groupId>
@@ -16,6 +17,6 @@ This project uses Arakhnê.org's AFC math and utils library. You can install it 
   		<artifactId>util</artifactId>
   		<version>13.0</version>
   	</dependency>
-  </dependencies>
-
+</dependencies>
+```
 
