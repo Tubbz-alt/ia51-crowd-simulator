@@ -22,7 +22,7 @@ package framework.^agent
 
 import framework.environment.DynamicType
 import framework.environment.Influence
-import framework.environment.InfluenceEvent
+import framework.environment.events.InfluenceEvent
 import framework.environment.KillInfluence
 import framework.environment.MotionInfluence
 import org.arakhne.afc.math.geometry.d2.d.Vector2d

@@ -1,4 +1,4 @@
-package framework.environment.event;
+package framework.environment.events;
 
 import io.sarl.lang.annotation.SarlSpecification;
 import io.sarl.lang.annotation.SyntheticMember;
@@ -10,14 +10,14 @@ import io.sarl.lang.core.Event;
  */
 @SarlSpecification("0.5")
 @SuppressWarnings("all")
-public class SimulationAgentReady extends Event {
+public class SimulationAgentReadyEvent extends Event {
   @SyntheticMember
-  public SimulationAgentReady() {
+  public SimulationAgentReadyEvent() {
     super();
   }
   
   @SyntheticMember
-  public SimulationAgentReady(final Address source) {
+  public SimulationAgentReadyEvent(final Address source) {
     super(source);
   }
   

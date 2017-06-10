@@ -1,4 +1,4 @@
-package framework.environment.event;
+package framework.environment.events;
 
 import io.sarl.lang.annotation.SarlSpecification;
 import io.sarl.lang.annotation.SyntheticMember;

@@ -23,16 +23,16 @@ package framework.^agent
 import framework.environment.DynamicType
 import framework.environment.Influence
 import framework.environment.Percept
-import framework.environment.SimulationAgentReady
-import framework.environment.StopSimulation
-import org.arakhne.afc.math.geometry.d2.d.Vector2d
+import framework.environment.events.SimulationAgentReadyEvent
+import framework.environment.events.StopSimulationEvent
+import io.sarl.core.DefaultContextInteractions
 import io.sarl.core.Initialize
 import io.sarl.core.Lifecycle
 import java.util.List
 import java.util.UUID
-import io.sarl.core.DefaultContextInteractions
+import org.arakhne.afc.math.geometry.d2.d.Vector2d
 
-agent AbstractAnimat {
+agent AbstractAnimat { 
 	
 	uses PhysicEnvironment, Lifecycle, DefaultContextInteractions
 	
@@ -40,7 +40,7 @@ agent AbstractAnimat {
 	
 	on Initialize {
 		occurrence.overridableInitializationStage
-		emit(new SimulationAgentReady)
+		emit(new SimulationAgentReadyEvent)
 	}
 
 	/** Change the type of the behavior.
@@ -93,7 +93,7 @@ agent AbstractAnimat {
 		if (list.isEmpty) null else list.get(0)
 	}
 
-	on StopSimulation {
+	on StopSimulationEvent {
 		killMe
 	}
 

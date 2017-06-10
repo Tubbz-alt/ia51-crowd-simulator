@@ -1,4 +1,4 @@
-package framework.environment.event;
+package framework.environment.events;
 
 import framework.environment.Percept;
 import framework.time.TimePercept;

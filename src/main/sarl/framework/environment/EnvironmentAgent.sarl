@@ -30,6 +30,7 @@ import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import framework.time.TimePercept
 import framework.util.AddressUUIDScope
+import framework.environment.events.*
 
 /** This agent is managing the physic space. 
  *
@@ -53,7 +54,7 @@ agent EnvironmentAgent {
 		this.^space = defaultContext.getSpace(spaceId)
 		this.^space.register(asEventListener)
 		this.myAdr = this.^space.getAddress(ID)
-		emit(new SimulationAgentReady)
+		emit(new SimulationAgentReadyEvent)
 	}
 	
 	on InfluenceEvent [!freeze.get] {
@@ -71,11 +72,11 @@ agent EnvironmentAgent {
 		}
 	}
 	
-	on StopSimulation {
+	on StopSimulationEvent {
 		killMe
 	}
 	
-	on StartSimulation {
+	on StartSimulationEvent {
 		runEnvironmentBehavior
 	}
 	

@@ -23,8 +23,8 @@ package framework
 import framework.environment.DynamicType
 import framework.environment.Environment
 import framework.environment.EnvironmentAgent
-import framework.environment.SimulationAgentReady
-import framework.environment.StartSimulation
+import framework.environment.events.SimulationAgentReadyEvent
+import framework.environment.events.StartSimulationEvent
 import framework.util.SpawnMapping
 import io.sarl.core.DefaultContextInteractions
 import io.sarl.core.Initialize
@@ -71,11 +71,11 @@ agent SimulatorAgent {
 		
 	}
 	
-	on SimulationAgentReady [!occurrence.fromMe] {
+	on SimulationAgentReadyEvent [!occurrence.fromMe] {
 		synchronized(this) {
 			waitingAgents --
 			if (waitingAgents <= 0) {
-				emit(new StartSimulation)
+				emit(new StartSimulationEvent)
 				killMe
 			}
 		}
