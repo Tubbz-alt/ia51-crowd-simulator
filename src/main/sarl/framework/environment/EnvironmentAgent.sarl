@@ -20,6 +20,13 @@
  */
 package framework.environment
 
+import framework.environment.^event.InfluenceEvent
+import framework.environment.^event.PerceptionEvent
+import framework.environment.^event.SimulationAgentReadyEvent
+import framework.environment.^event.StartSimulationEvent
+import framework.environment.^event.StopSimulationEvent
+import framework.time.TimePercept
+import framework.util.AddressUUIDScope
 import io.sarl.core.Behaviors
 import io.sarl.core.DefaultContextInteractions
 import io.sarl.core.Initialize
@@ -28,9 +35,6 @@ import io.sarl.lang.core.Address
 import io.sarl.util.OpenEventSpace
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
-import framework.time.TimePercept
-import framework.util.AddressUUIDScope
-import framework.environment.events.*
 
 /** This agent is managing the physic space. 
  *

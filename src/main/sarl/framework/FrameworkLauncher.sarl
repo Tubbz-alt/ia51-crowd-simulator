@@ -33,7 +33,7 @@ import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.logging.Level
 import framework.SimulatorAgent
-import framework.environment.events.StopSimulationEvent
+import framework.environment.^event.StopSimulationEvent
 
 /**
  * Launcher of the simulation framework.

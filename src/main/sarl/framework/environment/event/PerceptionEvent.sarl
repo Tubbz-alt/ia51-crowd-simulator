@@ -1,0 +1,24 @@
+/** 
+ * 
+ */
+package framework.environment.^event
+
+import framework.environment.Percept
+import framework.time.TimePercept
+import java.util.List
+
+/** 
+ * @author Leon Victor
+ * 
+ */
+event PerceptionEvent {
+	val body : Percept
+	val time : TimePercept
+	val perceptions : List<Percept>
+
+	new (p : List<Percept>, b : Percept, t : TimePercept) {
+		this.perceptions = p
+		this.body = b
+		this.time = t
+	}
+}

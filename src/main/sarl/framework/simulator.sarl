@@ -23,8 +23,8 @@ package framework
 import framework.environment.DynamicType
 import framework.environment.Environment
 import framework.environment.EnvironmentAgent
-import framework.environment.events.SimulationAgentReadyEvent
-import framework.environment.events.StartSimulationEvent
+import framework.environment.^event.SimulationAgentReadyEvent
+import framework.environment.^event.StartSimulationEvent
 import framework.util.SpawnMapping
 import io.sarl.core.DefaultContextInteractions
 import io.sarl.core.Initialize

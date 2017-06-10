@@ -20,11 +20,13 @@
  */
 package framework.^agent
 
+import framework.^agent.action.PhysicEnvironmentCapacity
+import framework.^agent.action.PhysicEnvironmentSkill
 import framework.environment.DynamicType
 import framework.environment.Influence
 import framework.environment.Percept
-import framework.environment.events.SimulationAgentReadyEvent
-import framework.environment.events.StopSimulationEvent
+import framework.environment.^event.SimulationAgentReadyEvent
+import framework.environment.^event.StopSimulationEvent
 import io.sarl.core.DefaultContextInteractions
 import io.sarl.core.Initialize
 import io.sarl.core.Lifecycle
@@ -32,9 +34,9 @@ import java.util.List
 import java.util.UUID
 import org.arakhne.afc.math.geometry.d2.d.Vector2d
 
-agent AbstractAnimat { 
+agent AbstractAnimat {
 	
-	uses PhysicEnvironment, Lifecycle, DefaultContextInteractions
+	uses PhysicEnvironmentSkill, Lifecycle, DefaultContextInteractions
 	
 	var behaviorType : DynamicType
 	
@@ -60,10 +62,10 @@ agent AbstractAnimat {
 	}
 
 	def overridableInitializationStage(it : Initialize) : void {
-		var physicSkill = new StandardPhysicEnvironment(it.parameters.get(0) as UUID,
+		var physicSkill = new PhysicEnvironmentSkill(it.parameters.get(0) as UUID,
 			it.parameters.get(1) as UUID)
 		this.behaviorType = it.parameters.get(2) as DynamicType
-		setSkill(physicSkill, typeof(PhysicEnvironment))
+		setSkill(physicSkill, typeof(PhysicEnvironmentCapacity))
 	}
 	
 	def getMaxLinear(p : Percept) : double {
