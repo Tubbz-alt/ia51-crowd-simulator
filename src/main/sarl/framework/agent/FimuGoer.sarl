@@ -7,11 +7,113 @@ import framework.environment.Percept
 import framework.environment.^event.PerceptionEvent
 import io.sarl.core.Initialize
 import java.util.List
+import org.arakhne.afc.math.geometry.d2.d.Vector2d
+import org.arakhne.afc.math.geometry.d2.d.Point2d
 
-agent Rabbit extends AbstractAnimat {
+/**
+ * Class for an agent who goes to attend concerts at the FIMU
+ * 
+ * Such agents have different meters that represent their needs (hunger, thirst, etc).
+ * The decision process is a simple algorithm (no decision tree, no MDP, sorry :( ) which works as follows:
+ * - eat and drink if needed
+ * - pee if needed
+ * - talk (or fight if drunk) if desired
+ * - attend concerts otherwise
+ * -
+ * -
+ * -
+ * - maybe a bonus depending on the advancement of the project :)
+ */
+
+agent FimuGoer extends AbstractAnimat {
 
 	var seekBehaviour : KinematicSeekBehavior
 	var wanderBehaviour : KinematicWanderBehavior
+	
+	var hungerMeter : double
+	var thirstMeter : double
+	var peeMeter : double
+	var drunkMeter : double
+	var talkMeter : double
+	var musicTaste : MusicTaste
+	var currentMood : MusicTaste
+	var currentNeed : Need
+	
+	/**
+	 * METHODS
+	 */
+	 
+	def analyzeNeeds() {
+		
+	}
+	
+	def resolveNeeds() {
+		
+	}
+	
+	def thirstResolver() {
+		
+	}
+	
+	def hungerResolver() {
+		
+	}
+	
+	def toiletResolver() {
+		
+	}
+	
+	def concertResolver() {
+		
+	}
+	
+	def talkResolver() {
+		
+	}
+	
+	def analyzeToilets() : Point2d {
+		
+	}
+
+	def analyzeFoodStands() : Point2d {
+	
+	}
+
+	def analyzeDrinkStands() : Point2d {
+	
+	}
+
+	def analyzeScenes() : Point2d {
+
+	}
+	
+	def getMusicState() : MusicTaste {
+		
+	}
+	
+	/**
+	 * TO REFACTOR
+	 */
+	 
+	def moveTo(newPos : Point2d) {
+		
+	}
+	
+	def obtain(what : Need) {
+		
+	}
+	
+	def engageConv(other : FimuGoer) {
+		
+	}
+	
+	def fight(other : FimuGoer) {
+		
+	}
+	
+	def gather(other : FimuGoer) {
+		
+	}
 
 	// This function is called from "on Initialize" in the super type.
 	override overridableInitializationStage(it : Initialize) {
@@ -28,7 +130,15 @@ agent Rabbit extends AbstractAnimat {
 			targets.get(0)
 		}
 	}
-
+		
+	override getSomething(caller: FimuGoer) {
+		
+	}
+	
+	/**
+	 * EVENT HANDLERS
+	 */
+	 
 	on PerceptionEvent {
 		var target = occurrence.perceptions.extractTarget
 
