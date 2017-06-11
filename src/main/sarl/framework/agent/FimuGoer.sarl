@@ -1,0 +1,57 @@
+
+package framework.^agent
+
+import framework.^agent.^behavior.KinematicSeekBehavior
+import framework.^agent.^behavior.KinematicWanderBehavior
+import framework.environment.Percept
+import framework.environment.^event.PerceptionEvent
+import io.sarl.core.Initialize
+import java.util.List
+
+agent Rabbit extends AbstractAnimat {
+
+	var seekBehaviour : KinematicSeekBehavior
+	var wanderBehaviour : KinematicWanderBehavior
+
+	// This function is called from "on Initialize" in the super type.
+	override overridableInitializationStage(it : Initialize) {
+		super.overridableInitializationStage(it)
+			this.seekBehaviour = new KinematicSeekBehavior
+			this.wanderBehaviour = new KinematicWanderBehavior
+	}
+
+	def extractTarget(percepts : List<Percept>) : Percept {
+		var targets = percepts.filter[it.type == "TARGET"]
+		if (targets.empty) {
+			null
+		} else {
+			targets.get(0)
+		}
+	}
+
+	on PerceptionEvent {
+		var target = occurrence.perceptions.extractTarget
+
+		if (target !== null) {
+			// run the seek behaviour
+			this.seekBehaviour.run(
+				occurrence.body.position,
+				occurrence.body.currentLinearSpeed,
+				occurrence.body.maxLinear,
+				target.position
+			).emitInfluence
+		} else {
+			doNothing
+			// // run the wander behaviour
+			// this.wanderBehaviour.run(
+			// occurrence.body.position,
+			// occurrence.body.direction,
+			// occurrence.body.currentLinearSpeed,
+			// occurrence.body.maxLinear,
+			// occurrence.body.currentAngularSpeed,
+			// occurrence.body.maxAngular
+			// ).emitInfluence
+		}
+	}
+
+}

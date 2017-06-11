@@ -1,0 +1,21 @@
+package framework.^agent.^behavior
+
+import org.arakhne.afc.math.geometry.d2.d.Point2d
+import org.arakhne.afc.math.geometry.d2.d.Vector2d
+import framework.^agent.MotionAlgorithmOutput
+import framework.environment.DynamicType
+import org.arakhne.afc.math.MathUtil
+
+class KinematicFaceAlgorithm {
+
+	def run(position : Point2d, orientation : Vector2d, angularSpeed : double, maxAngular : double,
+		target : Point2d) : MotionAlgorithmOutput {
+		var output = new MotionAlgorithmOutput(DynamicType::KINEMATIC)
+
+		var angle = orientation .. (target - position)
+		output.angular = MathUtil::clamp(angle, -maxAngular, maxAngular)
+
+		return output
+	}
+
+}
