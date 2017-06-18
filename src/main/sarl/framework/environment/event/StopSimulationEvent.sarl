@@ -1,9 +1,0 @@
-/** 
- * 
- */
-package framework.environment.^event
-/** 
- * @author Leon Victor
- * 
- */
-event StopSimulationEvent

@@ -1,16 +1,18 @@
-/** 
- * 
- */
-package framework.environment.^event
+package framework.^event
 
 import framework.environment.Percept
 import framework.time.TimePercept
 import java.util.List
+import framework.environment.Influence
 
-/** 
- * @author Leon Victor
- * 
- */
+event InfluenceEvent {
+	val influences : List<Influence>
+
+	new (e : Influence*) {
+		this.influences = e
+	}
+}
+
 event PerceptionEvent {
 	val body : Percept
 	val time : TimePercept
@@ -22,3 +24,9 @@ event PerceptionEvent {
 		this.time = t
 	}
 }
+
+event SimulationAgentReadyEvent
+
+event StartSimulationEvent
+
+event StopSimulationEvent
