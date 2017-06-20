@@ -1,0 +1,75 @@
+/** 
+ * 
+ */
+package io.sarl.fimu.environment
+
+import java.util.ArrayList
+import java.util.Collection
+import java.util.Collections
+import java.util.Map
+import java.util.TreeMap
+import java.util.UUID
+import org.arakhne.afc.math.geometry.d2.d.Vector2d
+import org.arakhne.afc.math.tree.node.QuadTreeNode
+
+/** 
+ * @author Léon
+ * Main Environment class. It is supposed to hold and manage all the agents
+ */
+class Environment {
+
+	var model = new QuadTreeNode.DefaultQuadTreeNode<ISituatedObject>
+	val agentBodyList : Map<UUID, AgentBody> = new TreeMap
+	
+	
+	def getAgentBody(id : UUID) : AgentBody {
+		synchronized (this.agentBodyList) {
+			this.agentBodyList.get(id)
+		}	
+	}
+
+	def getAgentBodies : Iterable<AgentBody> {
+		synchronized (this.agentBodyList) {
+			return Collections.unmodifiableCollection(this.agentBodyList.values)
+		}
+	}
+	
+	def getAllObjects : Iterable<? extends ISituatedObject> { model.allUserData }
+	
+	def applyInfluences(motionInfluences : Collection<Influence>) {
+		var influenceList = new ArrayList<MotionInfluence>(motionInfluences)
+		
+		for (index1 : 0 ..< influenceList.size) {
+			var inf1 = influenceList.get(index1)
+			var body1 = getAgentBody(inf1.emitter)
+			if (body1 !== null) {
+				var move : Vector2d
+				var rotation : float
+				if (inf1.type === DynamicType::STEERING) {
+					move = body1.computeSteeringTranslation(inf1.linearInfluence, timeManager)
+					rotation = body1.computeSteeringRotation(inf1.angularInfluence, timeManager)
+				} else {
+					move = body1.computeKinematicTranslation(inf1.linearInfluence, timeManager)
+					rotation = body1.computeKinematicRotation(inf1.angularInfluence, timeManager)
+				}
+
+				var body1Bounds = body1.shape
+
+				// Trivial collision detection
+				trivialCollisionDetection(index1, influenceList, body1Bounds, move)
+
+				actions += new AnimatAction(body1, move, rotation)
+
+			}
+		}
+
+		// Apply the actions
+		for (action : actions) {
+			var body = action.objectToMove
+			if (body !== null) {
+				body.move(action.translation, action.rotation)
+			}
+		}
+
+	}
+}

@@ -1,0 +1,128 @@
+/** 
+ * 
+ */
+package io.sarl.fimu.environment
+
+import org.arakhne.afc.math.geometry.d2.d.Vector2d
+
+/** 
+ * @author Léon
+ * Any environment object that is able to move.
+ */
+abstract class MobileObject implements SituatedObject {
+	
+	val maxLinearSpeed : float
+	val maxLinearAcceleration : float
+	val maxAngularSpeed : float
+	val maxAngularAcceleration : float
+
+	var angle = 0.0
+	var currentAngularSpeed = 0.0
+	var linearMove = new Vector2d
+	
+	protected def computeSteeringTranslation(move : Vector2d) : Vector2d {
+		var length = move.length
+
+		var v : Vector2d
+
+		if (length !== 0f) {
+			// Clamp acceleration
+			var l = (move * this.linearMove < 0.0) ? -length : length
+			var acceleration = MathUtil::clamp(,
+				-this.maxLinearAcceleration, this.maxLinearAcceleration)
+
+			// Apply Newton law, first part (from acceleration to speed)
+			acceleration = acceleration.abs / length
+			v = move * acceleration
+
+			v *= 0.5f * clock.lastStepDuration
+			v += this.linearMove
+		} else {
+			v = this.linearMove.clone
+		}
+
+		// v is a speed - unit: [m/s]
+		length = v.x * v.x + v.y * v.y
+		if (length != 0f) {
+			length = length.sqrt as float
+			// Clamp the speed
+			var speed = MathUtil::clamp(
+					if(v * this.linearMove < 0f) -length else length, 0f, this.maxLinearSpeed);
+
+			// Compute the Newton law, part 2 (from speed to distance)
+			var factor = clock.lastStepDuration * speed.abs / length
+
+			return v * factor
+		}
+
+		return new Vector2f
+	}
+	/** Compute a kinematic move according to the linear move and to
+	 * the internal attributes of this object.
+	 * 
+	 * @param move is the requested motion, expressed with speed.
+	 * @param clock is the simulation time manager
+	 * @return the linear instant motion.
+	 */
+	protected def computeKinematicTranslation(move : Vector2f, clock : TimeManager) : Vector2f {
+		var speed = move.length
+		if (speed != 0f) {
+			// Apply Newton-Euler-1 law
+			var factor = clock.lastStepDuration * MathUtil::clamp(speed, 0, this.maxLinearSpeed) / speed
+			return move * factor
+		}
+		return new Vector2f
+	}
+	/** Compute a kinematic move according to the angular move and to
+	 * the internal attributes of this object.
+	 * 
+	 * @param move is the requested motion with speed.
+	 * @param clock is the simulation time manager
+	 * @return the angular instant motion.
+	 */
+	protected def computeKinematicRotation(move : float, clock : TimeManager) : float {
+		var speed = move.abs
+		if (speed != 0f) {
+			// Apply Newton-Euler-1 law
+			var factor = clock.lastStepDuration * MathUtil::clamp(speed, 0, this.maxAngularSpeed) / speed
+			return move * factor
+		}
+		return 0f
+	}
+	/** Compute a steering move according to the angular move and to
+	 * the internal attributes of this object.
+	 * 
+	 * @param move is the requested motion.
+	 * @param clock is the simulation time manager
+	 * @return the angular instant motion.
+	 */
+	protected def computeSteeringRotation(move : float, clock : TimeManager) : float {
+		var v : float
+
+		if (move != 0f) {
+			// Clamp acceleration
+			var acceleration = MathUtil::clamp(move, -this.maxAngularAcceleration, this.maxAngularAcceleration)
+
+			// Apply Newton law, first part (from acceleration to speed)
+			acceleration = acceleration.abs / move.abs
+			v = move * acceleration
+			v *= 0.5f * clock.lastStepDuration
+			v += this.currentAngularSpeed
+		} else {
+			v = this.currentAngularSpeed
+		}
+
+		// v is a speed - unit: [m/s]
+		if (v != 0f) {
+			// Clamp the speed
+			var speed = MathUtil.clamp(v, -this.maxAngularSpeed, this.maxAngularSpeed);
+
+			// Compute the Newton law, part 2 (from speed to distance)
+			var factor = clock.lastStepDuration * speed.abs / v.abs;
+
+			return v * factor
+		}
+
+		return 0f
+	}
+}
