@@ -1,0 +1,203 @@
+package io.sarl.fimu.environment
+
+import org.arakhne.afc.math.geometry.d2.d.Vector2d
+import org.arakhne.afc.math.geometry.d2.d.Shape2d
+import static extension java.lang.Math.*
+import java.util.UUID
+import org.arakhne.afc.math.MathUtil
+
+/** 
+ * Any environment object that is able to move.
+ *
+ */
+abstract class AbstractMobileObject extends AbstractSituatedObject implements IMobileObject {
+	
+	val maxLinearSpeed : double
+	val maxLinearAcceleration : double
+	val maxAngularSpeed : double
+	val maxAngularAcceleration : double
+
+	var angle = 0.0
+	var currentAngularSpeed = 0.0
+	var linearMove = new Vector2d
+
+	new (id : UUID, shape : Shape2d<?>, maxLinearSpeed : double, maxLinearAcceleration : double, maxAngularSpeed : double,
+		maxAngularAcceleration : double) {
+		super(id, shape)
+		this.maxLinearSpeed = maxLinearSpeed.abs
+		this.maxLinearAcceleration = maxLinearAcceleration.abs
+		this.maxAngularAcceleration = maxAngularAcceleration.abs
+		this.maxAngularSpeed = maxAngularSpeed.abs
+	}
+	
+	protected def computeSteeringTranslation(move : Vector2d) : Vector2d {
+		var length = move.length
+
+		var v : Vector2d
+
+		if (length !== 0f) {
+			// Clamp acceleration
+			var l = if (move * this.linearMove < 0.0) -length else length
+			var acceleration = MathUtil::clamp(l, -this.maxLinearAcceleration, this.maxLinearAcceleration)
+
+			// Apply Newton law, first part (from acceleration to speed)
+			acceleration = acceleration.abs / length
+			v = move * acceleration
+
+			//v *= 0.5 * clock.lastStepDuration
+			v += this.linearMove
+		} else {
+			v = this.linearMove.clone
+		}
+
+		// v is a speed - unit: [m/s]
+		length = v.x * v.x + v.y * v.y
+		if (length != 0f) {
+			length = length.sqrt as double
+			// Clamp the speed
+			var speed = MathUtil::clamp(
+					if(v * this.linearMove < 0f) -length else length, 0f, this.maxLinearSpeed);
+
+			// Compute the Newton law, part 2 (from speed to distance)
+			//var factor = clock.lastStepDuration * speed.abs / length
+
+			return v //* factor
+		}
+
+		return new Vector2d
+	}
+	/** Compute a kinematic move according to the linear move and to
+	 * the internal attributes of this object.
+	 * 
+	 * @param move is the requested motion, expressed with speed.
+	 * @param clock is the simulation time manager
+	 * @return the linear instant motion.
+	 */
+	protected def computeKinematicTranslation(move : Vector2d/*, clock : TimeManager*/) : Vector2d {
+		var speed = move.length
+		if (speed != 0f) {
+			// Apply Newton-Euler-1 law
+			//var factor = clock.lastStepDuration * MathUtil::clamp(speed, 0, this.maxLinearSpeed) / speed
+			return move //* factor
+		}
+		return new Vector2d
+	}
+	/** Compute a kinematic move according to the angular move and to
+	 * the internal attributes of this object.
+	 * 
+	 * @param move is the requested motion with speed.
+	 * @param clock is the simulation time manager
+	 * @return the angular instant motion.
+	 */
+	protected def computeKinematicRotation(move : double/*, clock : TimeManager*/) : double {
+		var speed = move.abs
+		if (speed != 0f) {
+			// Apply Newton-Euler-1 law
+			//var factor = clock.lastStepDuration * MathUtil::clamp(speed, 0, this.maxAngularSpeed) / speed
+			return move //* factor
+		}
+		return 0f
+	}
+	/** Compute a steering move according to the angular move and to
+	 * the internal attributes of this object.
+	 * 
+	 * @param move is the requested motion.
+	 * @param clock is the simulation time manager
+	 * @return the angular instant motion.
+	 */
+	protected def computeSteeringRotation(move : double/*, clock : TimeManager*/) : double {
+
+		var v : double
+
+		if (move != 0f) {
+			// Clamp acceleration
+			var acceleration = MathUtil::clamp(move, -this.maxAngularAcceleration, this.maxAngularAcceleration)
+
+			// Apply Newton law, first part (from acceleration to speed)
+			acceleration = acceleration.abs / move.abs
+			v = move * acceleration
+			//v *= 0.5f * clock.lastStepDuration
+			v += this.currentAngularSpeed
+		} else {
+			v = this.currentAngularSpeed
+		}
+
+		// v is a speed - unit: [m/s]
+		if (v != 0f) {
+			// Clamp the speed
+			var speed = MathUtil.clamp(v, -this.maxAngularSpeed, this.maxAngularSpeed);
+
+			// Compute the Newton law, part 2 (from speed to distance)
+			//var factor = clock.lastStepDuration * speed.abs / v.abs;
+
+			return v // * factor
+		}
+
+		return 0f
+	}
+
+	override getAngle : double { angle }
+
+	override getDirection : Vector2d { Vector2d::toOrientationVector(angle) }
+
+	override getMaxLinearSpeed : double { maxLinearSpeed }
+
+	override getMaxAngularSpeed : double { maxAngularSpeed }
+
+	override getMaxLinearAcceleration : double { maxLinearAcceleration }
+
+	override getMaxAngularAcceleration : double { maxAngularAcceleration }
+
+	override getCurrentAngularSpeed : double { currentAngularSpeed }
+
+	override getCurrentLinearSpeed : double { linearMove.length }
+
+	override getCurrentLinearMotion : Vector2d {
+		linearMove.clone
+	}
+
+	protected def move(dx : double, dy : double,/* simulationDuration : double,*/ worldWidth : double,
+		worldHeight : double) : Vector2d {
+		// Ensure that the motion in inside the bounds of the world.
+		var r = new Vector2d(dx, dy)
+		var currentShape = this.shape
+		var targetShape = currentShape
+		targetShape.translate(r.x, r.y)
+		var targetBounds = targetShape.toBoundingBox
+		if (targetBounds.minX < 0) {
+			r.addX(-targetBounds.minX)
+		} else if (targetBounds.maxX > worldWidth) {
+			r.subX(targetBounds.maxX - worldWidth)
+		}
+
+		if (targetBounds.minY < 0) {
+			r.addY(-targetBounds.minY)
+		} else if (targetBounds.maxY > worldHeight) {
+			r.subY(targetBounds.maxY - worldHeight)
+		}
+
+		// Update the position
+		addPosition(r.x, r.y)
+		
+		// Update dynamic properties
+		//if (simulationDuration > 0) {
+			this.linearMove.set(r.x, r.y)
+			var distance = this.linearMove.length
+			if (distance > 0) {
+				this.linearMove.normalize
+				this.linearMove = this.linearMove * (distance /*/ simulationDuration*/)
+			}
+//		} else {
+//			this.linearMove.set(0, 0)
+//		}
+
+		return r
+	}
+
+	protected def rotate(rotation : double/*, simulationDuration : double*/) {
+		// TODO assert (!Double.isNaN(rotation)) : LocalizedString.getString(getClass(), "INVALID_ROTATION", getName());
+		// TODO assert (!Double.isNaN(simulationDuration)) : LocalizedString.getString(getClass(), "INVALID_DURATION", getName());
+		this.angle += rotation
+		this.currentAngularSpeed = rotation /*/ simulationDuration*/
+	}
+}

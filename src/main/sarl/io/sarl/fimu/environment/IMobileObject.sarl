@@ -1,0 +1,28 @@
+package io.sarl.fimu.environment
+
+import org.arakhne.afc.math.geometry.d2.d.Vector2d
+
+/** 
+ * @author Léon
+ * An object that is able to move
+ */
+interface IMobileObject extends ISituatedObject {
+	
+	def getAngle : double
+	
+	def getDirection : Vector2d
+	
+	def getMaxLinearSpeed : double
+	
+	def getMaxAngularSpeed : double
+	
+	def getMaxLinearAcceleration : double
+	
+	def getMaxAngularAcceleration : double
+	
+	def getCurrentAngularSpeed : double
+	
+	def getCurrentLinearSpeed : double
+	
+	def getCurrentLinearMotion : Vector2d
+}

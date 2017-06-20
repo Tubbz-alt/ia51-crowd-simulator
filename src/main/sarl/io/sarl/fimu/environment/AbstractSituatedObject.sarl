@@ -1,0 +1,50 @@
+/** 
+ * 
+ */
+package io.sarl.fimu.environment
+
+import java.util.UUID
+import org.arakhne.afc.math.geometry.d2.d.Point2d
+import org.arakhne.afc.math.geometry.d2.d.Shape2d
+
+/** 
+ * @author Léon
+ * 
+ */
+class AbstractSituatedObject implements ISituatedObject {
+
+	val id : UUID
+	var position = new Point2d
+	var shape : Shape2d<?>
+
+	new (id : UUID, shape : Shape2d<?>, position : Point2d = null) {
+		// TODO assert (id != null);
+		this.id = id
+		this.shape = shape
+		if (position !== null) {
+			this.position.set(position)
+		}
+	}
+	
+	override getPosition : Point2d { position }
+	
+	override getId : UUID { id }
+	
+	override getShape : Shape2d<?> { shape }
+	
+	override getX : double { position.x }
+	
+	override getY : double {
+		position.y
+	}
+
+	protected def addPosition(x : double, y : double) {
+		if (Double::isNaN(x) || Double::isNaN(y)) {
+//			System::err.println(
+//				MessageFormat::format("**** INVALID POSITION (NaN); object with name '{0}'.", this.name))
+		} else {
+			this.position.add(x, y)
+		}
+	}
+	
+}

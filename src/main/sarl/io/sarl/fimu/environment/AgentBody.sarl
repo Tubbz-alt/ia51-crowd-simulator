@@ -2,9 +2,87 @@
  * 
  */
 package io.sarl.fimu.environment
+
+import java.util.ArrayList
+import java.util.List
+import java.util.UUID
+import org.arakhne.afc.math.MathUtil
+import org.arakhne.afc.math.geometry.d2.d.Shape2d
+import org.arakhne.afc.math.geometry.d2.d.Vector2d
+
 /** 
  * @author Léon
  * 
  */
-class AgentBody {
+class AgentBody extends AbstractMobileObject {
+	
+	val frustum : Frustum
+
+	var motionInfluence : MotionInfluence
+	var otherInfluences : List<Influence> = new ArrayList
+	var perceptions : List<Percept> = new ArrayList
+
+	new (id : UUID, shape : Shape2d<?>, maxLinearSpeed : double,  maxLinearAcceleration : double, maxAngularSpeed : double,
+		maxAngularAcceleration : double, frustum : Frustum) {
+		super(id, shape, maxLinearSpeed, maxLinearAcceleration, maxAngularSpeed, maxAngularAcceleration)
+		//TODO assert (frustum == null || Objects.equals(id, frustum.getOwner()));
+		this.frustum = frustum
+		//this.type = "BODY"
+	}
+
+	def getFrustum : Frustum {
+		this.frustum
+	}
+	
+	/*
+	 * Send an influence to the environment
+	 */
+	def influence(influence : Influence) { 
+		if (influence instanceof MotionInfluence) {
+			if (influence.influencedObject === null || influence.influencedObject == id) {
+				switch (influence.type) {
+					case KINEMATIC: {
+						influenceKinematic(influence.linearInfluence, influence.angularInfluence)
+					}
+					case STEERING: {
+						influenceSteering(influence.linearInfluence, influence.angularInfluence)
+					}
+				}
+			} else {
+				this.otherInfluences += influence
+			}
+		} else if (influence !== null) {
+			this.otherInfluences += influence
+		}
+	}
+
+	def influenceKinematic(linearInfluence : Vector2d = null, angularInfluence : double = 0.0) {
+		var li : Vector2d
+		if (linearInfluence !== null) {
+			li = linearInfluence.clone
+			var nSpeed = li.length
+			if (nSpeed > this.maxLinearSpeed) {
+				li.length = this.maxLinearSpeed
+			}
+		}
+		var ai = MathUtil::clamp(angularInfluence, -this.maxAngularSpeed, this.maxAngularSpeed)
+		this.motionInfluence = new MotionInfluence(DynamicType::KINEMATIC, id, li, ai)
+	}
+
+	def influenceSteering(linearInfluence : Vector2d = null, angularInfluence : double = 0.0) {
+		var li : Vector2d
+		if (linearInfluence !== null) {
+			li = linearInfluence.clone
+			var nSpeed = li.length
+			if (nSpeed > this.maxLinearAcceleration) {
+				li.length = this.maxLinearAcceleration
+			}
+		}
+		var ai = MathUtil::clamp(angularInfluence, -this.maxAngularAcceleration, this.maxAngularAcceleration)
+		this.motionInfluence = new MotionInfluence(DynamicType::STEERING, id, li, ai)
+	}
+
+	def getPerceivedObjects : List<Percept> {
+		this.perceptions
+	}
 }

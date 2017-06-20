@@ -1,0 +1,11 @@
+/** 
+ * 
+ */
+package io.sarl.fimu.environment
+/** 
+ * @author Léon
+ * 
+ */
+class Frustum {
+	//TODO
+}

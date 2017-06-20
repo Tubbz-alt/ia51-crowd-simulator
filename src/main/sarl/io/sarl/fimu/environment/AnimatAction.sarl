@@ -1,0 +1,44 @@
+package io.sarl.fimu.environment
+
+import org.arakhne.afc.math.geometry.d2.d.Vector2d
+
+/*
+ *
+ */
+class AnimatAction {
+
+	val body : AgentBody
+	val move : Vector2d
+	val rotation : double
+	/**
+		 * @param object is the animat body.
+	 * @param move is the translation.
+	 * @param rotation is the rotation.
+	 */
+	new (object : AgentBody, move : Vector2d, rotation : double) {
+		this.body = object
+		this.move = move
+		this.rotation = rotation
+	}
+	/** Replies the moved object.
+	 * 
+	 * @return the moved object.
+	 */
+	def getObjectToMove : AgentBody {
+		this.body
+	}
+	/** Replies the translation.
+		 * 
+	 * @return the translation.
+	 */
+	def getTranslation : Vector2d {
+		this.move
+	} 
+	/** Replies the rotation.
+	 * 
+		 * @return the rotation.
+	 */
+	def getRotation : double {
+		this.rotation
+	}
+}

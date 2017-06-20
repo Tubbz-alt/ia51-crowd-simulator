@@ -1,6 +1,3 @@
-/** 
- * 
- */
 package io.sarl.fimu.environment
 
 import org.arakhne.afc.math.geometry.d2.d.Shape2d

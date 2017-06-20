@@ -11,6 +11,7 @@ import java.util.TreeMap
 import java.util.UUID
 import org.arakhne.afc.math.geometry.d2.d.Vector2d
 import org.arakhne.afc.math.tree.node.QuadTreeNode
+import java.util.concurrent.atomic.AtomicBoolean
 
 /** 
  * @author Léon
@@ -18,6 +19,17 @@ import org.arakhne.afc.math.tree.node.QuadTreeNode
  */
 class Environment {
 
+	val width : double
+	val height : double
+
+	val stateChanged = new AtomicBoolean
+
+	new (width : double, height : double) {
+		this.width = width
+		this.height = height
+		//this.timeManager = timeManager
+	}
+	
 	var model = new QuadTreeNode.DefaultQuadTreeNode<ISituatedObject>
 	val agentBodyList : Map<UUID, AgentBody> = new TreeMap
 	
@@ -36,27 +48,29 @@ class Environment {
 	
 	def getAllObjects : Iterable<? extends ISituatedObject> { model.allUserData }
 	
-	def applyInfluences(motionInfluences : Collection<Influence>) {
-		var influenceList = new ArrayList<MotionInfluence>(motionInfluences)
+	def applyInfluences(motionInfluences : Collection<MotionInfluence>) {
+		
+		var influenceList = new ArrayList(motionInfluences)
+		var actions = new ArrayList<AnimatAction>(influenceList.size)
 		
 		for (index1 : 0 ..< influenceList.size) {
 			var inf1 = influenceList.get(index1)
 			var body1 = getAgentBody(inf1.emitter)
 			if (body1 !== null) {
 				var move : Vector2d
-				var rotation : float
+				var rotation : double
 				if (inf1.type === DynamicType::STEERING) {
-					move = body1.computeSteeringTranslation(inf1.linearInfluence, timeManager)
-					rotation = body1.computeSteeringRotation(inf1.angularInfluence, timeManager)
+					move = body1.computeSteeringTranslation(inf1.linearInfluence/*, timeManager*/)
+					rotation = body1.computeSteeringRotation(inf1.angularInfluence/*, timeManager*/)
 				} else {
-					move = body1.computeKinematicTranslation(inf1.linearInfluence, timeManager)
-					rotation = body1.computeKinematicRotation(inf1.angularInfluence, timeManager)
+					move = body1.computeKinematicTranslation(inf1.linearInfluence/* , timeManager*/)
+					rotation = body1.computeKinematicRotation(inf1.angularInfluence/* , timeManager*/)
 				}
 
 				var body1Bounds = body1.shape
 
 				// Trivial collision detection
-				trivialCollisionDetection(index1, influenceList, body1Bounds, move)
+				//trivialCollisionDetection(index1, influenceList, body1Bounds, move)
 
 				actions += new AnimatAction(body1, move, rotation)
 
@@ -71,5 +85,41 @@ class Environment {
 			}
 		}
 
+	}
+
+	protected final def computeSteeringTranslation(obj : IMobileObject, move : Vector2d/*, clock : TimeManager*/) : Vector2d {
+		if (obj instanceof AbstractMobileObject) {
+			return obj.computeSteeringTranslation(move/*, clock*/)
+		}
+		throw new IllegalArgumentException("obj") 			// $NON-NLS-1$
+	}
+
+	protected final def computeKinematicTranslation(obj : IMobileObject, move : Vector2d/*,	clock : TimeManager*/) : Vector2d {
+		if (obj instanceof AbstractMobileObject) {
+			return obj.computeKinematicTranslation(move/*, clock*/)
+		}
+		throw new IllegalArgumentException("obj") 	// $NON-NLS-1$
+	}
+	
+	protected final def computeKinematicRotation(obj : IMobileObject, move : double/*, clock : TimeManager*/) : double {
+		if (obj instanceof AbstractMobileObject) {
+			return obj.computeKinematicRotation(move/*, clock*/)
+		}
+		throw new IllegalArgumentException("obj") 	// $NON-NLS-1$
+	}
+
+	protected final def move(obj : IMobileObject, instantTranslation : Vector2d, instantRotation : double) {
+		if (obj instanceof AbstractMobileObject) {
+			//var duration = this.timeManager.lastStepDuration
+			obj.move(instantTranslation.x, instantTranslation.y/*, duration*/, this.width, this.height)
+			obj.rotate(instantRotation/*, duration*/)
+			stateChanged()
+		} else {
+			throw new IllegalArgumentException("obj")
+		}
+	}
+
+	protected def stateChanged {
+		this.stateChanged.set(true)
 	}
 }
