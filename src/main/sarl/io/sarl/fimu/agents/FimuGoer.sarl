@@ -1,0 +1,294 @@
+package io.sarl.fimu.agents
+
+import io.sarl.core.Initialize
+import io.sarl.fimu.agents.behaviors.KinematicSeekBehavior
+import io.sarl.fimu.agents.behaviors.KinematicWanderBehavior
+import io.sarl.fimu.environment.Percept
+import java.util.List
+import org.arakhne.afc.math.geometry.d2.d.Point2d
+
+/**
+ * Class for an agent who goes to attend concerts at the FIMU
+ * 
+ * Such agents have different meters that represent their needs (hunger, thirst, etc).
+ * The decision process is a simple algorithm (no decision tree, no MDP, sorry :( ) which works as follows:
+ * - eat and drink if needed
+ * - pee if needed
+ * - talk (or fight if drunk) if desired
+ * - attend concerts otherwise
+ * -
+ * -
+ * -
+ * - maybe a bonus depending on the advancement of the project :)
+ */
+
+agent FimuGoer /*extends AbstractAnimat*/ {
+
+	var seekBehaviour : KinematicSeekBehavior
+	var wanderBehaviour : KinematicWanderBehavior
+	/** 
+	 * Meters range from 0 to 100 (think of percentages)
+	 * hungerMeter = 100 -> "I'm 100% hungry"           -> "I'm starving" :'(
+	 * thirstMeter = 100 -> "I'm 100% thirsty"          -> "My mouth is as dry as Sahara right now"
+	 * peeMeter    = 100 -> "I 100% need to pee"        -> "I'm going to wet my pants"
+	 * drunkMeter  = 100 -> "I'm 94375873432186% drunk" -> "azihm aigmaegub h!rmgm psçvujhkl" ¤¤¤
+	 * talkMeter   = 100 -> "I'm 100% talkative"        -> "I need to find someone whom to tell every single thing about my life"
+	 * 
+	 * ¤¤¤ : I should throw punches at random people to show them how much I love them
+	 */
+	var hungerMeter : int
+	var thirstMeter : int
+	var peeMeter : int
+	var drunkMeter : int
+	var talkMeter : int
+	
+	/**
+	 * An agent has core-defined music taste that never changes (musicTaste),
+	 * but it also has one that can change during the simulation, depending on multpiple parameters (currentMood)
+	 */
+	var musicTaste : MusicTaste
+	var currentMood : MusicTaste
+	var currentNeed : Need
+	
+	/**
+	 * METHODS
+	 */
+	
+	/**
+	 * Will find what the agent needs depending on its meters
+	 */ 
+	def analyzeNeeds() {
+		// Defined priority order: drink > eat > pee > talk > attend concerts
+		if (thirstMeter > 90) {
+			currentNeed = Need.WATER
+		}
+		else if (hungerMeter > 90) {
+			currentNeed = Need.FOOD
+		}
+		else if (peeMeter > 90) {
+			currentNeed = Need.TOILETS
+		}
+		else if (talkMeter > 90) {
+			currentNeed = Need.TALK
+		}
+		else {
+			currentNeed = Need.CONCERT
+		}
+		
+		resolveNeeds
+	}
+	
+	/**
+	 * Delegates tasks to other functions according to the needs
+	 */
+	def resolveNeeds() {
+		switch (currentNeed) {
+			case Need.WATER: {
+				thirstResolver
+			}
+			case Need.FOOD: {
+				hungerResolver
+			}
+			case Need.TOILETS: {
+				toiletResolver
+			}
+			case Need.TALK: {
+				talkResolver
+			}
+			case Need.CONCERT: {
+				concertResolver
+			}
+			default: {
+				
+			}
+		}
+	}
+	
+	/**
+	 * Having everything fragmented in resolvers allows specific processing depending on other parameters
+	 */
+	
+	def thirstResolver() {
+		if (drunkMeter < 40) {
+			//Find and go to the nearest drinks stand
+			
+			var nearestDrinks = analyzeDrinkStands(1)
+			//moveTo(nearestDrinks)
+		}
+		else if (drunkMeter < 80) {
+			//Find toilets (not necessarily the nearest ones) and go there
+			
+			var someToilets = analyzeToilets(-1)
+			//moveTo(someToilets)
+		}
+		else {
+			// 1) Try to drink from the Savoureuse
+			// 2) 40% drink
+			//	3) walk away
+			// 4) 60% fall over
+			//	5) SAVOUREUSE BEHAVIOR TAKES OVER
+			//	6) ???
+			//	7) Profit
+		}
+	}
+	
+	def hungerResolver() {
+		if (drunkMeter < 60) {
+			//Find and go to the nearest food stand
+			
+			var nearestFood = analyzeFoodStands(1)
+			// moveTo(nearestFood)
+		}
+		else if (drunkMeter < 80) {
+			// Find toilets (not necessarily the nearest ones) and go there
+			
+			var someToilets = analyzeToilets(-1)
+			// moveTo(someToilets)
+		}
+		else {
+			// 1) Try to eat fish from the Savoureuse
+			// 2) 2% succeed
+			//	3) walk away
+			// 4) 98% fall over
+			//	5) SAVOUREUSE BEHAVIOR TAKES OVER
+			//	6) ???
+			//	7) Profit
+		}
+	}
+
+	def toiletResolver() {
+		if (drunkMeter < 60) {
+			// Find and go to the nearest toilet
+			
+			var nearestToilet = analyzeToilets(1)
+			// moveTo(nearestToilet)
+		}
+		else {
+			// 1) Try to pee in the Savoureuse
+			// 2) 60% succeed
+			//	3) walk away
+			// 4) 30% fall over
+			//	5) SAVOUREUSE BEHAVIOR TAKES OVER
+			//	6) ???
+			//	7) Profit
+		}
+	}
+	
+	def concertResolver() {
+		if (drunkMeter < 20) {
+			// Find and go to the nearest appropriate scene
+			var nearestScene = analyzeScenes(1)
+			// moveTo(nearestScene)
+		}
+		else {
+			// Find another scene (not necessarily the most appropriate one) and go there
+			
+			var someScene = analyzeScenes(-1)
+			// moveTo(someScene)
+		}
+	}
+	
+	def talkResolver() {
+		//wanderBehaviour.run( ... )
+	}
+	
+	/**
+	 * Analyzers return the position of the n-ranked nearest requested type of agent
+	 * If the rank is -1, a random agent is returned
+	 */
+	def analyzeToilets(rank : int) : Point2d {
+		//Ask Environment for a list of toilets
+		//Iterate over toilets and calculate distance for each (Dijkstra would be appropriate)
+		//Find the n-ranked nearest toilet
+		//Return it
+	}
+
+	def analyzeFoodStands(rank : int) : Point2d {
+		//Ask Environment for a list of food stands
+		//Iterate over food stands and calculate distance for each (Dijkstra would be appropriate)
+		//Find the n-ranked nearest food stand
+		//Return it
+	}
+
+	def analyzeDrinkStands(rank : int) : Point2d {
+		//Ask Environment for a list of drink stands
+		//Iterate over drink stands and calculate distance for each (Dijkstra would be appropriate)
+		//Find the n-ranked nearest drink stand
+		//Return it
+	}
+
+	def analyzeScenes(rank : int) : Point2d {
+		//Ask Environment for a list of scenes
+		//Iterate over scenes, retrieve musical orientation and calculate musical affinity
+		//Find the n-ranked most appropriate scene
+		//Return it
+	}
+	
+	def getMusicState() : MusicTaste {
+		return musicTaste;
+	}
+	
+	/**
+	 * TO REFACTOR
+	 * This is to be rewritten to fit the influence system
+	 */
+	 
+	def moveTo(newPos : Point2d) {
+		
+	}
+	
+	def obtain(what : Need) {
+		
+	}
+	
+	def engageConv(other : FimuGoer) {
+		
+	}
+	
+	def fight(other : FimuGoer) {
+		
+	}
+	
+	def gather(other : FimuGoer) {
+		
+	}
+
+//	def extractTarget(percepts : List<Percept>) : Percept {
+//		var targets = percepts.filter[it.type == "TARGET"]
+//		if (targets.empty) {
+//			null
+//		} else {
+//			targets.get(0)
+//		}
+//	}
+		
+	def getSomething(caller: FimuGoer) {
+		
+	}
+	 
+//	on PerceptionEvent {
+//		var target = occurrence.perceptions.extractTarget
+//
+//		if (target !== null) {
+//			// run the seek behaviour
+//			this.seekBehaviour.run(
+//				occurrence.body.position,
+//				occurrence.body.currentLinearSpeed,
+//				occurrence.body.maxLinear,
+//				target.position
+//			).emitInfluence
+//		} else {
+//			doNothing
+//			// // run the wander behaviour
+//			// this.wanderBehaviour.run(
+//			// occurrence.body.position,
+//			// occurrence.body.direction,
+//			// occurrence.body.currentLinearSpeed,
+//			// occurrence.body.maxLinear,
+//			// occurrence.body.currentAngularSpeed,
+//			// occurrence.body.maxAngular
+//			// ).emitInfluence
+//		}
+//	}
+
+}

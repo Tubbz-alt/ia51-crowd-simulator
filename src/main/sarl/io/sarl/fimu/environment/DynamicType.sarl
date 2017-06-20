@@ -1,0 +1,19 @@
+package io.sarl.fimu.environment
+
+/**
+ * Type of dynamic entity.
+ * 
+ * @author St&eacute;phane GALLAND &lt;stephane.galland@utbm.fr&gt;
+ * @version $Name$ $Revision$ $Date$
+ */
+enum DynamicType {
+
+	/** Kinematic entity.
+	 */
+	KINEMATIC,
+	
+	/** Steering entity.
+	 */
+	STEERING
+
+}

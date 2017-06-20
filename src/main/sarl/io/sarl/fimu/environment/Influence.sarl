@@ -1,0 +1,50 @@
+package io.sarl.fimu.environment
+
+import java.io.Serializable
+import java.util.UUID
+
+/**
+ * Abstract implementation of an influence.
+ * 
+ * @param <IO> is the type of the influencable objects.
+ * @author St&eacute;phane GALLAND &lt;stephane.galland@utbm.fr&gt;
+ * @version $Name$ $Revision$ $Date$
+ */
+abstract class Influence implements Serializable {
+
+	var emitter : UUID
+	val influencedObject : UUID 
+	
+	/**
+	 * @param influencedObject is the influenced object.
+	 */
+	protected new (influencedObject : UUID) {
+		this.influencedObject = influencedObject
+	}
+	
+	/** Replies the emitter of the influence.
+	 * 
+	 * @return the emitter of the influence.
+	 */
+	def getEmitter : UUID {
+		this.emitter
+	}
+	
+	/** Set the emitter of the influence.
+	 * 
+	 * @param emitter is the emitter of the influence.
+	 */
+	package def setEmitter(emitter : UUID) {
+		//TODO assert(emitter!=null);
+		this.emitter = emitter
+	}
+
+	/** Replies the influenced object.
+	 * 
+	 * @return the influenced object.
+	 */
+	def getInfluencedObject : UUID {
+		this.influencedObject
+	}
+	
+}

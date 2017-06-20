@@ -1,0 +1,77 @@
+package io.sarl.fimu.agents.actions
+
+import io.sarl.core.Behaviors
+import io.sarl.core.DefaultContextInteractions
+import io.sarl.fimu.environment.Influence
+import io.sarl.fimu.environment.MotionInfluence
+import io.sarl.lang.core.Address
+import io.sarl.util.OpenEventSpace
+import java.util.UUID
+import org.arakhne.afc.math.geometry.d2.d.Vector2d
+
+skill PhysicEnvironmentSkill implements PhysicEnvironmentCapacity {
+
+	uses DefaultContextInteractions, Behaviors
+
+	val spaceID : UUID
+	val environmentID : UUID
+	var physicSpace : OpenEventSpace
+	var myAdr : Address
+	
+	new (spaceID : UUID, environmentID : UUID) {
+		this.environmentID = environmentID
+		this.spaceID = spaceID
+	}
+
+	def install {
+		do {
+			this.physicSpace = defaultContext.getSpace(this.spaceID)
+			Thread::yield
+		} while (this.physicSpace === null)
+		this.physicSpace.register(asEventListener)
+		this.myAdr = this.physicSpace.getAddress(owner.getID)
+	}
+	
+//	def uninstall() {
+//		var ^event = new InfluenceEvent(new KillInfluence)
+//		^event.source = this.myAdr
+//		this.physicSpace.emit(^event, new AddressUUIDScope(this.environmentID))
+//		this.physicSpace = null
+//	}
+	
+	def influenceKinematic(linearInfluence : Vector2d = null, angularInfluence : double = 0.0, otherInfluences : Influence*) {
+//		var mi : MotionInfluence
+//		if (linearInfluence === null) {
+//			mi = new MotionInfluence(DynamicType::KINEMATIC, angularInfluence)
+//		} else {
+//			mi = new MotionInfluence(DynamicType::KINEMATIC, linearInfluence, angularInfluence)
+//		}
+//		emitInfluences(mi, otherInfluences)
+	}
+	
+	def influenceSteering(linearInfluence : Vector2d = null, angularInfluence : double = 0.0, otherInfluences : Influence*) {
+//		var mi : MotionInfluence
+//		if (linearInfluence === null) {
+//			mi = new MotionInfluence(DynamicType::STEERING, angularInfluence)
+//		} else {
+//			mi = new MotionInfluence(DynamicType::STEERING, linearInfluence, angularInfluence)
+//		}
+//		emitInfluences(mi, otherInfluences)
+	}
+	
+	def emitInfluences(motionInfluence : MotionInfluence, otherInfluences : Influence*) {
+//		var influences : Influence[]
+//		if (otherInfluences.isEmpty) {
+//			influences = Array::newInstance(typeof(Influence), 1) as Influence[]
+//			influences.set(0, motionInfluence)
+//		} else {
+//			influences = Array::newInstance(typeof(Influence), otherInfluences.length + 1) as Influence[]
+//			influences.set(0, motionInfluence)
+//			System::arraycopy(otherInfluences, 0, influences, 1, otherInfluences.length)
+//		}
+//		var ^event = new InfluenceEvent(influences)
+//		^event.source = this.myAdr
+//		this.physicSpace.emit(^event, new AddressUUIDScope(this.environmentID))
+	}
+	
+}

@@ -1,0 +1,5 @@
+package io.sarl.fimu.environment
+
+class Percept /*implements MobileObject, Serializable*/ {
+ //TODO 
+}

@@ -1,0 +1,44 @@
+package io.sarl.fimu
+
+import io.sarl.fimu.gui.FXMLViewerController
+import java.net.URL
+import java.util.ResourceBundle
+import javafx.application.Application
+import javafx.fxml.FXMLLoader
+import javafx.fxml.JavaFXBuilderFactory
+import javafx.scene.Parent
+import javafx.scene.Scene
+import javafx.stage.Stage
+
+class FimuFXApplication extends Application {
+
+	private var loader : FXMLLoader
+
+	private val bundle : ResourceBundle = ResourceBundle.getBundle(
+		FimuFXApplication.getPackage.name.replaceAll("\\.", "/") + "/" + FimuFXApplication.simpleName);
+
+	@Override
+	public def start(stage : Stage) throws Exception {
+		var location : URL = getClass().getResource("FimuFXApplication.fxml");
+		loader = new FXMLLoader();
+		loader.setLocation(location);
+		loader.setBuilderFactory(new JavaFXBuilderFactory());
+		loader.resources = bundle
+		var root : Parent = loader.load(location.openStream()) as Parent;
+		var scene : Scene = new Scene(root);
+		scene.getStylesheets().add(getClass().getResource("ViewerController.css").toExternalForm);
+		stage.setTitle(bundle.getString("TITLE"))
+		stage.setScene(scene);
+		stage.show();
+	}
+
+	public static def main(args : String[]) {
+		launch(args);
+	}
+
+	@Override
+	public def stop() throws Exception {
+		super.stop();
+		(loader.getController() as FXMLViewerController).cleanExit();
+	}
+}
