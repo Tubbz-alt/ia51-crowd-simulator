@@ -6,12 +6,16 @@ package io.sarl.fimu.environment
 import java.util.ArrayList
 import java.util.Collection
 import java.util.Collections
+import java.util.List
 import java.util.Map
 import java.util.TreeMap
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicBoolean
+import org.arakhne.afc.math.MathConstants
+import org.arakhne.afc.math.geometry.d2.d.Circle2d
+import org.arakhne.afc.math.geometry.d2.d.Point2d
 import org.arakhne.afc.math.geometry.d2.d.Vector2d
 import org.arakhne.afc.math.tree.node.QuadTreeNode
-import java.util.concurrent.atomic.AtomicBoolean
 
 /** 
  * @author Léon
@@ -21,13 +25,21 @@ class Environment {
 
 	val width : double
 	val height : double
-
+	
+	var init = false
+	
+	static val NORMAL_PERSON_SIZE = 20.0
 	val stateChanged = new AtomicBoolean
 
 	new (width : double, height : double) {
 		this.width = width
 		this.height = height
 		//this.timeManager = timeManager
+	}
+	
+	new {
+		this.width = 700.0
+		this.height = 700.0
 	}
 	
 	var model = new QuadTreeNode.DefaultQuadTreeNode<ISituatedObject>
@@ -87,6 +99,51 @@ class Environment {
 
 	}
 
+	def runBehavior {
+//		if (this.init.getAndSet(false)) {
+//			fireEnvironmentChange
+//		}
+
+		this.stateChanged.set(false)
+
+		var motionInfluences = new ArrayList<MotionInfluence>
+		var otherInfluences = new ArrayList<Influence>
+		var bodies : List<AgentBody>
+		synchronized (this.agentBodyList) {
+			bodies = new ArrayList(this.agentBodyList.size)
+			bodies.addAll(this.agentBodyList.values)
+		}
+		for(body : bodies) {
+			var mi = body.consumeMotionInfluence
+			if (mi !== null) {
+				motionInfluences += mi
+			}
+			for (i : body.consumeOtherInfluences) {
+				if (i instanceof KillInfluence) {
+					stateChanged()
+					var rbody : AgentBody
+					synchronized (this.agentBodyList) {
+						rbody = (this.agentBodyList -= i.emitter)
+					}
+					if (rbody !== null) {
+						rbody.onAgentBodyDestroyed
+					}
+				} else {
+					otherInfluences += i
+				}
+				}
+		}
+		
+		}
+
+	def onAgentBodyCreated(body : AgentBody) {
+		this.model.addUserData(body)
+	}
+
+	def onAgentBodyDestroyed(body : AgentBody) {
+		this.model.removeUserData(body)
+	}
+	
 	protected final def computeSteeringTranslation(obj : IMobileObject, move : Vector2d/*, clock : TimeManager*/) : Vector2d {
 		if (obj instanceof AbstractMobileObject) {
 			return obj.computeSteeringTranslation(move/*, clock*/)
@@ -121,5 +178,47 @@ class Environment {
 
 	protected def stateChanged {
 		this.stateChanged.set(true)
+	}
+
+	private def createBody(type : String) {
+		var body = new AgentBody(UUID::randomUUID, 
+								 new Circle2d(0.0, 0.0, NORMAL_PERSON_SIZE), // body
+								 5.0, // max linear speed m/s
+							 	 0.5, // max linear acceleration (m/s)/s
+								 MathConstants::PI / 4.0, // max angular speed r/s
+								 MathConstants::PI / 10.0, // max angular acceleration (r/s)/s
+								 null); // no frustum since computePerceptionsFor() is not using this parameter
+		//body.name = MessageFormat::format("Body #{0}", this.agentBodyNumber + 1)
+		body.type = type
+		addAgentBody(body, randomPosition, Math::random as double * MathConstants::TWO_PI)
+	}
+	
+	def createPelo(){
+		createBody("PELO")
+	}
+
+	protected def randomPosition : Point2d {
+		var x = Math::random as double * this.width - NORMAL_PERSON_SIZE
+		var y = Math::random as double * this.height - NORMAL_PERSON_SIZE
+		return new Point2d(x, y)
+	}
+
+	protected synchronized def addAgentBody(body : AgentBody, position : Point2d, direction : double) {
+		if (true) {
+			synchronized (this.agentBodyList) {
+				this.agentBodyList.put(body.id, body)
+			}
+			body.position = position
+			body.angle = direction
+			body.onAgentBodyCreated
+		} else {
+			throw new IllegalStateException("You cannot call this function after the start of the simulation");
+		}
+	}
+
+	def getAgentBodyNumber : int {
+		synchronized (this.agentBodyList) {
+			return this.agentBodyList.size
+		}
 	}
 }

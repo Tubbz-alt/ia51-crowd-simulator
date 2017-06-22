@@ -6,6 +6,7 @@ package io.sarl.fimu.environment
 import java.util.UUID
 import org.arakhne.afc.math.geometry.d2.d.Point2d
 import org.arakhne.afc.math.geometry.d2.d.Shape2d
+import java.io.Serializable
 
 /** 
  * @author Léon
@@ -16,6 +17,11 @@ class AbstractSituatedObject implements ISituatedObject {
 	val id : UUID
 	var position = new Point2d
 	var shape : Shape2d<?>
+	var type : Serializable
+
+	def setPosition(p : Point2d) {
+		this.position = p
+	}
 
 	new (id : UUID, shape : Shape2d<?>, position : Point2d = null) {
 		// TODO assert (id != null);
@@ -34,9 +40,7 @@ class AbstractSituatedObject implements ISituatedObject {
 	
 	override getX : double { position.x }
 	
-	override getY : double {
-		position.y
-	}
+	override getY : double { position.y	}
 
 	protected def addPosition(x : double, y : double) {
 		if (Double::isNaN(x) || Double::isNaN(y)) {
@@ -45,6 +49,12 @@ class AbstractSituatedObject implements ISituatedObject {
 		} else {
 			this.position.add(x, y)
 		}
+	}
+	
+	override getType : Serializable { type }
+	
+	def setType(t : Serializable) {
+		this.type = t
 	}
 	
 }

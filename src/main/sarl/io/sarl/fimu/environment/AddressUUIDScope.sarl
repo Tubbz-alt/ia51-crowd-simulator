@@ -1,0 +1,26 @@
+/** 
+ * 
+ */
+package io.sarl.fimu.environment
+
+import io.sarl.lang.core.Address
+import io.sarl.lang.core.Scope
+import java.util.UUID
+
+/** 
+ * @author Léon
+ * 
+ */
+class AddressUUIDScope implements Scope<Address>{
+	
+	var id : UUID
+
+	new(id : UUID) {
+		this.id = id
+	}
+	
+	override matches(address : Address) : boolean {
+		this.id == address.UUID
+	}
+	
+}

@@ -1,0 +1,107 @@
+/** 
+ * 
+ */
+package io.sarl.fimu.agents
+
+import io.sarl.core.Behaviors
+import io.sarl.core.DefaultContextInteractions
+import io.sarl.core.Initialize
+import io.sarl.core.Lifecycle
+import io.sarl.core.Logging
+import io.sarl.fimu.environment.Environment
+import io.sarl.fimu.environment.Percept
+import io.sarl.fimu.events.EnvironmentStateChanged
+import io.sarl.fimu.events.PerceptionEvent
+import io.sarl.fimu.events.SimulationAgentReady
+import io.sarl.fimu.events.StartSimulation
+import io.sarl.fimu.events.StopSimulation
+import io.sarl.lang.core.Address
+import io.sarl.util.OpenEventSpace
+import java.util.UUID
+import io.sarl.fimu.events.InfluenceEvent
+
+/** 
+ * @author Léon
+ * 
+ */
+agent EnvironmentAgent {
+	uses Logging, Lifecycle, DefaultContextInteractions, Behaviors
+
+	var freeze : boolean
+	var environment : Environment
+	var ^space : OpenEventSpace
+	var myAdr : Address
+	var influences : int
+	
+	on Initialize {
+		this.environment = (occurrence.parameters.get(0) as Environment);
+		var spaceId = (occurrence.parameters.get(1) as UUID);
+		this.^space = defaultContext.getSpace(spaceId)
+		this.^space.register(asEventListener)
+		this.myAdr = this.^space.getAddress(spaceId)
+		emit(new SimulationAgentReady)
+	}
+	
+	on StartSimulation {
+		runBehavior
+		this.^space.emit(new EnvironmentStateChanged(environment.allObjects.iterator()))
+	}
+	
+	on StopSimulation {
+		killMe
+	}
+	
+	def runBehavior {
+		this.freeze = true
+		try {
+			this.influences = 0
+			this.environment.runBehavior
+			// var delay = this.environment.timeManager.simulationDelay as long
+				// if (delay > 0) {
+			// Thread::sleep(delay)
+			// }
+		} finally {
+			this.freeze = false
+		}
+		notifyAgents
+	}
+
+	/* 
+	 * Notify all the agents that the next step has begun. 
+	 */
+	def notifyAgents {
+		var run = false
+		// val timePercept = new TimePercept(this.environment.timeManager.currentTime,
+		// this.environment.timeManager.lastStepDuration)
+		for (body : this.environment.agentBodies) {
+			run = true
+			var ^event = new PerceptionEvent(body.perceivedObjects, new Percept(body)
+			/* , timePercept
+			 */
+			)
+			^event.source = this.myAdr
+			this.^space.emit(^event)[it.UUID == body.id]
+		}
+		if (!run) {
+			killMe
+		}
+	}
+
+	on InfluenceEvent [!freeze] {
+		for (influence : occurrence.influences) {
+			var id = influence.emitter
+			if (id === null) {
+				id = occurrence.source.UUID
+			}
+			var body = this.environment.getAgentBody(id)
+			body.influence(influence)
+		}
+		this.influences ++
+		//var v = this.influences.incrementAndGet
+		if (this.influences >= this.environment.getAgentBodyNumber()) {
+			runBehavior
+		}
+	}
+	
+	
+}

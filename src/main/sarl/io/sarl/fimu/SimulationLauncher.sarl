@@ -5,12 +5,16 @@ package io.sarl.fimu
 
 import io.janusproject.Boot
 import io.sarl.fimu.agents.SimulationAgent
+import io.sarl.fimu.environment.AgentBodyMapper
+import io.sarl.fimu.environment.Environment
 import io.sarl.fimu.gui.FXMLViewerController
+
+import static io.janusproject.Boot.*
 
 class SimulationLauncher {
 	static def main(controller : FXMLViewerController) {
 		Boot::offline = true
 		Boot::verboseLevel = 7
-		Boot::startJanus(typeof(SimulationAgent), controller)
+		Boot::startJanus(typeof(SimulationAgent), controller, new Environment, new AgentBodyMapper)
 	}
 }

@@ -29,6 +29,10 @@ abstract class AbstractMobileObject extends AbstractSituatedObject implements IM
 		this.maxAngularAcceleration = maxAngularAcceleration.abs
 		this.maxAngularSpeed = maxAngularSpeed.abs
 	}
+
+	def setAngle(a : double) {
+		this.angle = a
+	}
 	
 	protected def computeSteeringTranslation(move : Vector2d) : Vector2d {
 		var length = move.length
@@ -136,7 +140,7 @@ abstract class AbstractMobileObject extends AbstractSituatedObject implements IM
 		return 0f
 	}
 
-	override getAngle : double { angle }
+	public override getAngle : double { angle }
 
 	override getDirection : Vector2d { Vector2d::toOrientationVector(angle) }
 
