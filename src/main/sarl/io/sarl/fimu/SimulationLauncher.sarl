@@ -1,0 +1,20 @@
+/** 
+ * 
+ */
+package io.sarl.fimu
+
+import io.janusproject.Boot
+import io.sarl.fimu.environment.AgentBodyMapper
+import io.sarl.fimu.environment.Environment
+import io.sarl.fimu.gui.FXMLViewerController
+
+import static io.janusproject.Boot.*
+import io.sarl.fimu.agents.EnvironmentAgent
+
+class SimulationLauncher {
+	static def main(controller : FXMLViewerController) {
+		Boot::offline = true
+		Boot::verboseLevel = 7
+		Boot::startJanus(typeof(EnvironmentAgent), controller, new Environment(controller.getDrawZoneWidth(),controller.getDrawZoneHeight()), new AgentBodyMapper)
+	}
+}

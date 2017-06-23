@@ -1,0 +1,21 @@
+/** 
+ * 
+ */
+package io.sarl.fimu.environment
+
+import io.sarl.lang.core.Agent
+import io.sarl.fimu.agents.PeloAgent
+
+/** 
+ * @author Léon
+ * This class is used on agent initialization to map the body with the right agent class
+ */
+class AgentBodyMapper {
+	def getAgentTypeForBody(body : AgentBody) : Class<? extends Agent> {
+		var agentType = body.type
+		if ("PELO" == agentType) {
+			return typeof(PeloAgent)
+		}
+		throw new IllegalArgumentException
+	}
+}

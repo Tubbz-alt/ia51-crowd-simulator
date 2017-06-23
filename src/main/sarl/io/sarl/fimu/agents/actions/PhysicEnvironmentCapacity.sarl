@@ -1,0 +1,25 @@
+package io.sarl.fimu.agents.actions
+
+import io.sarl.fimu.environment.Influence
+import org.arakhne.afc.math.geometry.d2.d.Vector2d
+
+capacity PhysicEnvironmentCapacity {
+	
+	/** Invoked to send the influence to the environment.
+	 * 
+	 * @param linearInfluence is the linear influence to apply on the object.
+	 * @param angularInfluence is the angular influence to apply on the object.
+	 * @param otherInfluences other influences to emit in parallel to the motion influence.
+	 */
+	def influenceKinematic(linearInfluence : Vector2d = null, angularInfluence : double = 0.0, otherInfluences : Influence*)
+	
+	/** Invoked to send the influence to the environment.
+	 * 
+	 * @param linearInfluence is the linear influence to apply on the object.
+	 * @param angularInfluence is the angular influence to apply on the object.
+	 * @param otherInfluences other influences to emit in parallel to the motion influence.
+	 */
+	def influenceSteering(linearInfluence : Vector2d = null, angularInfluence : double = 0.0, otherInfluences : Influence*)
+
+}
+

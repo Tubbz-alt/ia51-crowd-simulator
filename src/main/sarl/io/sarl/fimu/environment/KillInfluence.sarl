@@ -1,0 +1,13 @@
+/** 
+ * 
+ */
+package io.sarl.fimu.environment
+/** 
+ * @author Léon
+ * 
+ */
+class KillInfluence extends Influence {
+	new {
+		super(null)
+	}
+}

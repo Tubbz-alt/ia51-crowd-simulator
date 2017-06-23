@@ -1,0 +1,112 @@
+/** 
+ * 
+ */
+package io.sarl.fimu.environment
+
+import java.util.Objects
+import org.arakhne.afc.math.geometry.d2.d.Shape2d
+import org.arakhne.afc.math.geometry.d2.d.Vector2d
+
+/** 
+ * @author Léon
+ * 
+ */
+class SituatedArtifact implements IShapedObject, Comparable<SituatedArtifact> {
+
+	val object : IMobileObject
+	val linearMotion : Vector2d
+	val angularMotion : double
+	val shape : MotionHull
+	var cleared : boolean
+	/**
+		 * @param object
+	 * @param linearMotion
+	 * @param angularMotion
+	 */
+	new (object : ISituatedObject, linearMotion : Vector2d, angularMotion : double) {
+		this.object = if(object instanceof IMobileObject) object as IMobileObject else null
+		this.linearMotion = linearMotion
+		this.angularMotion = angularMotion
+		this.shape = new MotionHull(object.position, linearMotion, object.shape.toBoundingBox.firstAxisExtent)
+	}
+
+	override equals(obj : Object) : boolean {
+		if (obj instanceof SituatedArtifact) {
+			return this.object == obj.object && this.linearMotion == obj.linearMotion &&
+				this.angularMotion == obj.angularMotion
+		}
+		return false
+	}
+
+	override hashCode : int {
+		Objects::hash(this.object, this.linearMotion, this.angularMotion)
+	}
+
+	override compareTo(o : SituatedArtifact) : int {
+		if (o === this) {
+			return 0
+		}
+		if (o === null) {
+			return Integer::MAX_VALUE
+		}
+		var c : int
+		if (this.object !== null) {
+			c = this.object.compareTo(o.object)
+			if (c !== 0) {
+				return c
+			}
+		}
+		if (this.linearMotion !== null) {
+			if (!this.linearMotion.equals(o.linearMotion)){
+				return Integer::MAX_VALUE	
+			}
+			//c = this.linearMotion.compareTo(o.linearMotion)
+//			if (c !== 0) {
+//				return c
+//			}
+		}
+		return Double::compare(this.angularMotion, o.angularMotion)
+	}
+	/** Replies the object to move.
+		 *
+		 * @return the object to move.
+	 */
+	def getObject : IMobileObject {
+		this.object
+	}
+	/** Replies the linear motion.
+	 * 
+	 * @return the linear motion.
+	 */
+		def getLinearMotion : Vector2d {
+		this.linearMotion
+	}
+	/** Replies the angular motion.
+	 * 
+	 * @return the angular motion.
+	 */
+	def getAngularMotion : double {
+		this.angularMotion
+	}
+
+	override getShape : Shape2d<?> {
+		this.shape as Shape2d<?>
+	}
+
+	override toString : String {
+		this.linearMotion + "|" + this.angularMotion
+	}
+	/** Replies if this object contains no movement definition.
+		 *
+		 * @return <code>true</code> if this object contains a movement definition.
+	 */
+	def isEmpty : boolean {
+		this.cleared
+	}
+	/** Clear the movement definition.
+	 */
+	def clear {
+			this.cleared = true
+	}
+
+}

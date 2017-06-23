@@ -1,0 +1,110 @@
+/** 
+ * 
+ */
+package io.sarl.fimu.environment
+
+import io.sarl.fimu.environment.frustum.IFrustum
+import java.util.ArrayList
+import java.util.List
+import java.util.UUID
+import org.arakhne.afc.math.MathUtil
+import org.arakhne.afc.math.geometry.d2.d.Shape2d
+import org.arakhne.afc.math.geometry.d2.d.Vector2d
+
+/** 
+ * @author Léon
+ * 
+ */
+class AgentBody extends AbstractMobileObject {
+	
+	val frustum : IFrustum
+
+	var motionInfluence : MotionInfluence
+	var otherInfluences : List<Influence> = new ArrayList
+	var perceptions : List<Percept> = new ArrayList
+
+	new (id : UUID, shape : Shape2d<?>, maxLinearSpeed : double,  maxLinearAcceleration : double, maxAngularSpeed : double,
+		maxAngularAcceleration : double, frustum : IFrustum) {
+		super(id, shape, maxLinearSpeed, maxLinearAcceleration, maxAngularSpeed, maxAngularAcceleration)
+		//TODO assert (frustum == null || Objects.equals(id, frustum.getOwner()));
+		this.frustum = frustum
+		//this.type = "BODY"
+	}
+
+	def getFrustum : IFrustum {
+		this.frustum
+	}
+
+	def consumeMotionInfluence : MotionInfluence {
+		var mi = this.motionInfluence
+		this.motionInfluence = null
+		mi?.setEmitter(id)
+		mi
+	}
+
+	package def consumeOtherInfluences : List<Influence> {
+		var otherInfluences = this.otherInfluences
+		this.otherInfluences = new ArrayList
+		for (i : otherInfluences) {
+			i?.setEmitter(id)
+		}
+		otherInfluences
+	}
+	
+	/*
+	 * Send an influence to the environment
+	 */
+	def influence(influence : Influence) { 
+		if (influence instanceof MotionInfluence) {
+			if (influence.influencedObject === null || influence.influencedObject == id) {
+				switch (influence.type) {
+					case KINEMATIC: {
+						influenceKinematic(influence.linearInfluence, influence.angularInfluence)
+					}
+					case STEERING: {
+						influenceSteering(influence.linearInfluence, influence.angularInfluence)
+					}
+				}
+			} else {
+				this.otherInfluences += influence
+			}
+		} else if (influence !== null) {
+			this.otherInfluences += influence
+		}
+	}
+
+	def setPerceptions(perceptions : List<Percept>) : void {
+		// TODO assert(perceptions!=null);
+		this.perceptions = perceptions
+	}
+	
+	def influenceKinematic(linearInfluence : Vector2d = null, angularInfluence : double = 0.0) {
+		var li : Vector2d
+		if (linearInfluence !== null) {
+			li = linearInfluence.clone
+			var nSpeed = li.length
+			if (nSpeed > this.maxLinearSpeed) {
+				li.length = this.maxLinearSpeed
+			}
+		}
+		var ai = MathUtil::clamp(angularInfluence, -this.maxAngularSpeed, this.maxAngularSpeed)
+		this.motionInfluence = new MotionInfluence(DynamicType::KINEMATIC, id, li, ai)
+	}
+
+	def influenceSteering(linearInfluence : Vector2d = null, angularInfluence : double = 0.0) {
+		var li : Vector2d
+		if (linearInfluence !== null) {
+			li = linearInfluence.clone
+			var nSpeed = li.length
+			if (nSpeed > this.maxLinearAcceleration) {
+				li.length = this.maxLinearAcceleration
+			}
+		}
+		var ai = MathUtil::clamp(angularInfluence, -this.maxAngularAcceleration, this.maxAngularAcceleration)
+		this.motionInfluence = new MotionInfluence(DynamicType::STEERING, id, li, ai)
+	}
+
+	def getPerceivedObjects : List<Percept> {
+		this.perceptions
+	}
+}

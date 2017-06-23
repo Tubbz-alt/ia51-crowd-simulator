@@ -1,0 +1,86 @@
+/** 
+ * 
+ */
+package io.sarl.fimu.environment
+
+import java.io.Serializable
+import java.util.Objects
+import java.util.UUID
+import org.arakhne.afc.math.geometry.d2.d.Point2d
+import org.arakhne.afc.math.geometry.d2.d.Shape2d
+
+/** 
+ * @author Léon
+ * 
+ */
+class AbstractSituatedObject implements ISituatedObject { 
+
+	val id : UUID
+	var position = new Point2d
+	var shape : Shape2d<?>
+	var type : Serializable
+
+	def setPosition(p : Point2d) {
+		this.position = p
+	}
+
+	new (id : UUID, shape : Shape2d<?>, position : Point2d = null) {
+		// TODO assert (id != null);
+		this.id = id
+		this.shape = shape
+		if (position !== null) {
+			this.position.set(position)
+		}
+	}
+	
+	override getPosition : Point2d { position }
+	
+	override getId : UUID { id }
+	
+	override getShape : Shape2d<?> { shape }
+	
+	override getX : double { position.x }
+	
+	override getY : double { position.y	}
+
+	protected def addPosition(x : double, y : double) {
+		if (Double::isNaN(x) || Double::isNaN(y)) {
+//			System::err.println(
+//				MessageFormat::format("**** INVALID POSITION (NaN); object with name '{0}'.", this.name))
+		} else {
+			this.position.add(x, y)
+		}
+	}
+	
+	override getType : Serializable { type }
+	
+	def setType(t : Serializable) {
+		this.type = t
+	}
+
+	override clone : AbstractSituatedObject {
+		var clone = super.clone as AbstractSituatedObject
+		clone.position = this.position.clone
+		clone.shape = this.shape.clone
+		return clone
+	}
+
+	override equals(obj : Object) : boolean {
+		if (obj === this) {
+			return true;
+		}
+		if (obj instanceof ISituatedObject) {
+			return obj.id == id
+		}
+		return false
+	}
+
+	override hashCode : int {
+		Objects.hashCode(id)
+	}
+
+	override compareTo(o : ISituatedObject) : int {
+		if(o === null) Integer::MAX_VALUE else id <=> o.id
+	}
+	
+}

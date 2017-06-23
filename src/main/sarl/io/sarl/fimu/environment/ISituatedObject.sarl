@@ -1,0 +1,28 @@
+/** 
+ * 
+ */
+package io.sarl.fimu.environment
+
+import java.io.Serializable
+import java.util.UUID
+import org.arakhne.afc.math.geometry.d2.d.Point2d
+
+/** 
+ * @author Léon
+ * Any object with a position
+ */
+interface ISituatedObject extends IShapedObject, Cloneable, Comparable<ISituatedObject>{
+	
+	def getPosition() : Point2d
+	
+	def getX() : double
+	
+	def getY() : double
+	
+	def getId() : UUID
+
+	def getType : Serializable
+	
+	def clone : ISituatedObject
+	
+}

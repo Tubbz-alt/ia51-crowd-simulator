@@ -1,0 +1,186 @@
+package io.sarl.fimu.environment
+
+import java.io.Serializable
+import java.util.UUID
+import org.arakhne.afc.math.geometry.d2.d.Point2d
+import org.arakhne.afc.math.geometry.d2.d.Shape2d
+import org.arakhne.afc.math.geometry.d2.d.Vector2d
+
+/** 
+ * Something that is perceived by an agent (this can be another agent, but also an object, a wall, etc)
+ */
+class Percept implements IMobileObject {
+	val bodyId : UUID
+	val objectId : UUID
+	var shape : Shape2d<?>
+	var position : Point2d
+	val angle : double
+	val type : Serializable
+	val maxLinearSpeed : double
+	val maxLinearAcceleration : double
+	var currentLinearMotion : Vector2d
+	var maxAngularSpeed : double
+	val maxAngularAcceleration : double
+	val currentAngularSpeed : double
+	//val name : String 
+	
+	/** 
+	 * @param perceivedObject is the perceived object.
+	 */
+	new (perceivedObject : ISituatedObject, type : Serializable = null) {
+		this.objectId = perceivedObject.id
+		//this.name = perceivedObject.name
+		this.shape = perceivedObject.shape
+		this.position = perceivedObject.position.clone
+		var rtype = type ?: perceivedObject.type
+		this.type = rtype ?: perceivedObject.^class.name
+		if (perceivedObject instanceof IMobileObject) {
+			this.angle = perceivedObject.angle
+			this.maxAngularAcceleration = perceivedObject.maxAngularAcceleration
+			this.maxAngularSpeed = perceivedObject.maxAngularSpeed
+			this.maxLinearAcceleration = perceivedObject.maxLinearAcceleration
+			this.maxLinearSpeed = perceivedObject.maxLinearSpeed
+			this.currentAngularSpeed = perceivedObject.currentAngularSpeed
+			this.currentLinearMotion = perceivedObject.currentLinearMotion.clone
+		} else {
+			this.angle = 0f
+			this.maxAngularAcceleration = 0f
+			this.maxAngularSpeed = 0f
+			this.maxLinearAcceleration = 0f
+			this.maxLinearSpeed = 0f
+			this.currentAngularSpeed = 0f
+			this.currentLinearMotion = null
+		}
+		if (perceivedObject instanceof AgentBody) {
+			this.bodyId = perceivedObject.id
+		} else {
+			this.bodyId = null
+		}
+	}
+
+	override clone : Percept {
+		var clone = super.clone as Percept
+		clone.currentLinearMotion = this.currentLinearMotion.clone
+		clone.position = this.position.clone
+		clone.shape = this.shape.clone
+		return clone
+	}
+
+	override equals(obj : Object) : boolean {
+		if (obj instanceof Percept) {
+			return this.bodyId == obj.bodyId && this.objectId == obj.objectId
+		}
+		return false
+	}
+
+//	override hashCode : int {
+//		Objects.hashCode(this.bodyId, this.objectId)
+//	}
+
+	def compareTo(o : ISituatedObject) : int {
+		if (o instanceof Percept) {
+			if (this.bodyId !== null) {
+				var c = this.bodyId <=> o.ID
+				if (c != 0) {
+					return c
+				}
+			}
+			if (this.objectId !== null) {
+				return this.objectId <=> o.ID
+			}
+		}
+		return Integer::MAX_VALUE
+	}
+
+	/** Replies the id of the body.
+	 * 
+	 * @return the id of the body.
+	 */
+	def getBodyID : UUID {
+		this.bodyId
+	}
+	/** Replies the id of the body.
+	 * 
+	 * @return the id of the body.
+	 */
+	def getID : UUID {
+		this.objectId
+	}
+
+	override getShape : Shape2d<?> {
+		this.shape
+	}
+
+	override getX : double {
+		this.position.x
+	}
+
+	override getY : double {
+		this.position.y
+	}
+
+	override getPosition : Point2d {
+		this.position
+	}
+
+	override getAngle : double {
+		this.angle
+	}
+
+	override getDirection : Vector2d {
+		Vector2d::toOrientationVector(this.angle)
+	}
+
+	override getMaxLinearSpeed : double {
+		this.maxLinearSpeed
+	}
+
+	override getMaxAngularSpeed : double {
+		this.maxAngularSpeed
+	}
+
+	override getMaxLinearAcceleration : double {
+		this.maxLinearAcceleration
+	}
+
+	override getMaxAngularAcceleration : double {
+		this.maxAngularAcceleration
+	}
+
+	override getCurrentAngularSpeed : double {
+		this.currentAngularSpeed
+	}
+
+	override getCurrentLinearSpeed : double {
+		this.currentLinearMotion?.length
+	}
+
+	override getCurrentLinearMotion : Vector2d {
+		if(this.currentLinearMotion === null){
+			return new Vector2d
+		}else{
+			return this.currentLinearMotion
+		}
+	}
+
+//	override getType : Serializable {
+//		this.type
+//	}
+//
+//	override getName : String {
+//		this.name
+//	}
+
+//	override toString : String {
+//		if(this.name.isNullOrEmpty) super.toString() else this.name
+//	}
+	
+	override getId : UUID {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override getType : Serializable {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+}

@@ -1,0 +1,26 @@
+package io.sarl.fimu.agents.behaviors
+
+import org.arakhne.afc.math.geometry.d2.d.Vector2d
+import org.arakhne.afc.math.geometry.d2.d.Point2d
+import java.util.Random
+import io.sarl.fimu.agents.MotionAlgorithmOutput
+import io.sarl.fimu.environment.DynamicType
+
+class KinematicWanderBehavior {
+
+	val random = new Random
+
+	def run(position : Point2d, orientation : Vector2d, linearSpeed : double, maxLinear : double,
+		angularSpeed : double, maxAngular : double) : MotionAlgorithmOutput {
+		var output = new MotionAlgorithmOutput(DynamicType::KINEMATIC)
+
+		var v = orientation.clone
+		v.length = maxLinear
+		output.linear = v
+
+		var rotation = (this.random.nextGaussian * maxAngular) as double
+		output.angular = rotation
+
+		return output
+	}
+}
