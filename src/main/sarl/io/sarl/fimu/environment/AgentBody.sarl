@@ -3,13 +3,13 @@
  */
 package io.sarl.fimu.environment
 
+import io.sarl.fimu.environment.frustum.IFrustum
 import java.util.ArrayList
 import java.util.List
 import java.util.UUID
 import org.arakhne.afc.math.MathUtil
 import org.arakhne.afc.math.geometry.d2.d.Shape2d
 import org.arakhne.afc.math.geometry.d2.d.Vector2d
-import org.arakhne.afc.math.geometry.d2.d.Point2d
 
 /** 
  * @author Léon
@@ -17,21 +17,21 @@ import org.arakhne.afc.math.geometry.d2.d.Point2d
  */
 class AgentBody extends AbstractMobileObject {
 	
-	val frustum : Frustum
+	val frustum : IFrustum
 
 	var motionInfluence : MotionInfluence
 	var otherInfluences : List<Influence> = new ArrayList
 	var perceptions : List<Percept> = new ArrayList
 
 	new (id : UUID, shape : Shape2d<?>, maxLinearSpeed : double,  maxLinearAcceleration : double, maxAngularSpeed : double,
-		maxAngularAcceleration : double, frustum : Frustum) {
+		maxAngularAcceleration : double, frustum : IFrustum) {
 		super(id, shape, maxLinearSpeed, maxLinearAcceleration, maxAngularSpeed, maxAngularAcceleration)
 		//TODO assert (frustum == null || Objects.equals(id, frustum.getOwner()));
 		this.frustum = frustum
 		//this.type = "BODY"
 	}
 
-	def getFrustum : Frustum {
+	def getFrustum : IFrustum {
 		this.frustum
 	}
 
