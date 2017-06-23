@@ -3,16 +3,17 @@
  */
 package io.sarl.fimu.environment
 
+import java.io.Serializable
+import java.util.Objects
 import java.util.UUID
 import org.arakhne.afc.math.geometry.d2.d.Point2d
 import org.arakhne.afc.math.geometry.d2.d.Shape2d
-import java.io.Serializable
 
 /** 
  * @author Léon
  * 
  */
-class AbstractSituatedObject implements ISituatedObject {
+class AbstractSituatedObject implements ISituatedObject { 
 
 	val id : UUID
 	var position = new Point2d
@@ -55,6 +56,31 @@ class AbstractSituatedObject implements ISituatedObject {
 	
 	def setType(t : Serializable) {
 		this.type = t
+	}
+
+	override clone : AbstractSituatedObject {
+		var clone = super.clone as AbstractSituatedObject
+		clone.position = this.position.clone
+		clone.shape = this.shape.clone
+		return clone
+	}
+
+	override equals(obj : Object) : boolean {
+		if (obj === this) {
+			return true;
+		}
+		if (obj instanceof ISituatedObject) {
+			return obj.id == id
+		}
+		return false
+	}
+
+	override hashCode : int {
+		Objects.hashCode(id)
+	}
+
+	override compareTo(o : ISituatedObject) : int {
+		if(o === null) Integer::MAX_VALUE else id <=> o.id
 	}
 	
 }

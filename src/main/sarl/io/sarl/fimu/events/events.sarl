@@ -3,11 +3,11 @@
  */
 package io.sarl.fimu.events
 
+import io.sarl.fimu.environment.Environment
 import io.sarl.fimu.environment.ISituatedObject
 import io.sarl.fimu.environment.Influence
 import io.sarl.fimu.environment.Percept
 import java.util.List
-import java.util.Iterator
 
 /* 
  * Trigger the launching area for starting the demo
@@ -88,9 +88,9 @@ event Freeze {
 }
 
 event EnvironmentStateChanged {
-	val objects : Iterator<? extends ISituatedObject>
+	val objects : Iterable<? extends ISituatedObject>
 	
-	new (o : Iterator<? extends ISituatedObject>) {
+	new (o : Iterable<? extends ISituatedObject>) {
 		this.objects = o
 	}
 }
@@ -122,3 +122,14 @@ event SimulationAgentReady
 event StartSimulation
 
 event StopSimulation
+
+
+/*
+ * Environment has changed ! 
+ */
+event EnvironmentEvent {
+	val environment : Environment
+	new(e : Environment){
+		environment = e
+	}
+}

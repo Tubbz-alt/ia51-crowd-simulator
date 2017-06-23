@@ -6,50 +6,104 @@ package io.sarl.fimu.agents
 import io.sarl.core.Behaviors
 import io.sarl.core.DefaultContextInteractions
 import io.sarl.core.Initialize
+import io.sarl.core.InnerContextAccess
 import io.sarl.core.Lifecycle
 import io.sarl.core.Logging
+import io.sarl.fimu.environment.AgentBodyMapper
 import io.sarl.fimu.environment.Environment
 import io.sarl.fimu.environment.Percept
-import io.sarl.fimu.events.EnvironmentStateChanged
+import io.sarl.fimu.events.CreateArea
+import io.sarl.fimu.events.InfluenceEvent
 import io.sarl.fimu.events.PerceptionEvent
-import io.sarl.fimu.events.SimulationAgentReady
-import io.sarl.fimu.events.StartSimulation
 import io.sarl.fimu.events.StopSimulation
+import io.sarl.fimu.gui.FXMLViewerController
 import io.sarl.lang.core.Address
 import io.sarl.util.OpenEventSpace
+import io.sarl.util.OpenEventSpaceSpecification
+import java.util.List
+import java.util.Random
 import java.util.UUID
-import io.sarl.fimu.events.InfluenceEvent
+import io.sarl.fimu.events.Freeze
 
 /** 
  * @author Léon
  * 
  */
 agent EnvironmentAgent {
-	uses Logging, Lifecycle, DefaultContextInteractions, Behaviors
+	uses Logging, Lifecycle, DefaultContextInteractions, Behaviors, InnerContextAccess
 
+	var exited = false
+	var maxWidth = 10.0
 	var freeze : boolean
 	var environment : Environment
 	var ^space : OpenEventSpace
-	var myAdr : Address
 	var influences : int
 	
+	var mapper : AgentBodyMapper
+	var ctrl : FXMLViewerController
+	
+	
 	on Initialize {
-		this.environment = (occurrence.parameters.get(0) as Environment);
-		var spaceId = (occurrence.parameters.get(1) as UUID);
-		this.^space = defaultContext.getSpace(spaceId)
-		this.^space.register(asEventListener)
-		this.myAdr = this.^space.getAddress(spaceId)
-		emit(new SimulationAgentReady)
+
+		this.ctrl = occurrence.parameters.get(0) as FXMLViewerController
+		this.environment = occurrence.parameters.get(1) as Environment
+		this.mapper = (occurrence.parameters.get(2) as AgentBodyMapper)
+
+		// Create a specific space for the GUI controller
+		var ispace = defaultContext.createSpace(OpenEventSpaceSpecification, UUID.randomUUID)
+		ctrl.setGUISpace(ispace)
+		ispace.register(asEventListener)
+		environment.addListener(ctrl)
+		
+		//This would draw the agents body if there were any
+		//ctrl.draw()
+		
+		//Tell the simulator agent that we are ready to rock
+		//emit(new SimulationAgentReady)
 	}
 	
-	on StartSimulation {
+//	on StartSimulation {
+//		runBehavior
+//		this.^space.emit(new EnvironmentStateChanged(environment.allObjects.iterator()))
+	//	}
+	
+		/* 
+	 * Create and configure every RocketLauncher
+	 */
+	on CreateArea {
+		var i = 0
+		//create a bunch of test agents
+		environment.createPelo;
+		// Pas sûr du premier arguement
+		
+		var agentParameters : List<Object> = newArrayList(getDefaultSpace.getSpaceID.ID, this.ID)
+		info(getDefaultSpace.getSpaceID.ID)
+		for (body : environment.agentBodies) {
+			var agentType = mapper.getAgentTypeForBody(body)
+			spawnInContextWithID(agentType, body.id, getDefaultContext, agentParameters.toArray)
+		}
+		
+		//This probably has to change
+		ctrl.draw() 
 		runBehavior
-		this.^space.emit(new EnvironmentStateChanged(environment.allObjects.iterator()))
 	}
 	
-	on StopSimulation {
-		killMe
+//	on StopSimulation {
+//		killMe
+	//	}
+
+	/* 
+	 * Transmit Freeze signal
+	 */
+	on Freeze [!isFromMe(occurrence)] { 
+		innerContext.defaultSpace.emit(occurrence)
 	}
+	
+	/*
+	 * Run one simulation step : 
+	 *  - consume and apply previously received influences
+	 * 	- 
+	 */
 	
 	def runBehavior {
 		this.freeze = true
@@ -63,28 +117,31 @@ agent EnvironmentAgent {
 		} finally {
 			this.freeze = false
 		}
+		
 		notifyAgents
 	}
 
 	/* 
-	 * Notify all the agents that the next step has begun. 
+	 * Notify all the agents that the next step has begun, and tell them what they can perceive 
 	 */
 	def notifyAgents {
-		var run = false
+//		var run = false
 		// val timePercept = new TimePercept(this.environment.timeManager.currentTime,
 		// this.environment.timeManager.lastStepDuration)
 		for (body : this.environment.agentBodies) {
-			run = true
+//			run = true
 			var ^event = new PerceptionEvent(body.perceivedObjects, new Percept(body)
 			/* , timePercept
 			 */
 			)
-			^event.source = this.myAdr
-			this.^space.emit(^event)[it.UUID == body.id]
+			^event.source = defaultSpace.getAddress(ID)
+			//Send each agent body a percept event
+			//Maybe inner context ? We'll see later
+			getDefaultSpace.emit(^event)[it.UUID == body.id]
 		}
-		if (!run) {
-			killMe
-		}
+//		if (!run) {
+//			killMe
+//		}
 	}
 
 	on InfluenceEvent [!freeze] {
@@ -98,10 +155,9 @@ agent EnvironmentAgent {
 		}
 		this.influences ++
 		//var v = this.influences.incrementAndGet
+		//
 		if (this.influences >= this.environment.getAgentBodyNumber()) {
 			runBehavior
 		}
 	}
-	
-	
 }

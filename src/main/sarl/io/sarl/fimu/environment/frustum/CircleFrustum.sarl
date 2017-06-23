@@ -1,0 +1,60 @@
+/* 
+ * $Id$
+ * 
+ * Copyright (c) 2011-17 Stephane GALLAND <stephane.galland@utbm.fr>.
+ * 
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * This program is free software; you can redistribute it and/or modify
+ */
+package io.sarl.fimu.environment.frustum
+
+import java.util.UUID
+import org.arakhne.afc.math.geometry.d2.d.Circle2d
+import org.arakhne.afc.math.geometry.d2.d.Point2d
+import org.arakhne.afc.math.geometry.d2.d.Shape2d
+import org.arakhne.afc.math.geometry.d2.d.Vector2d
+
+/**
+ * A circular frustum.
+ * 
+ * @author St&eacute;phane GALLAND &lt;stephane.galland@utbm.fr&gt;
+ * @version $Name$ $Revision$ $Date$
+ */
+class CircleFrustum extends AbstractFrustum {
+
+	val radius : double
+	
+	/**
+	 * @param owner the identifier of the owner of this frustum.
+	 * @param radius the radius of the field-of-view.
+	 */
+	new (owner : UUID, radius : double) {
+		super(owner)
+		this.radius = radius
+	}
+	
+	/** Replies the radius of the frustum.
+	 *
+	 * @return the radius.
+	 */
+	def getRadius : double {
+		this.radius
+	}
+
+	override toShape(position : Point2d, orientation : Vector2d) : Shape2d<?> {
+		new Circle2d(position, this.radius)
+	}
+
+}

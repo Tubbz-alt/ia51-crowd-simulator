@@ -3,6 +3,9 @@
  */
 package io.sarl.fimu.environment
 
+import io.sarl.fimu.events.EnvironmentEvent
+import io.sarl.fimu.utils.tree.tree4d.QuadTree
+import io.sarl.lang.core.EventListener
 import java.util.ArrayList
 import java.util.Collection
 import java.util.Collections
@@ -14,53 +17,57 @@ import java.util.concurrent.atomic.AtomicBoolean
 import org.arakhne.afc.math.MathConstants
 import org.arakhne.afc.math.geometry.d2.d.Circle2d
 import org.arakhne.afc.math.geometry.d2.d.Point2d
+import org.arakhne.afc.math.geometry.d2.d.Rectangle2d
 import org.arakhne.afc.math.geometry.d2.d.Vector2d
-import org.arakhne.afc.math.tree.node.QuadTreeNode
 
 /** 
  * @author Léon
  * Main Environment class. It is supposed to hold and manage all the agents
  */
 class Environment {
-
+	
+	var model = new QuadTree<ISituatedObject>
+	val agentBodyList : Map<UUID, AgentBody> = new TreeMap
+	
 	val width : double
 	val height : double
 	
-	var init = false
-	
+	val init = new AtomicBoolean(true)
+	var listener : EventListener
 	static val NORMAL_PERSON_SIZE = 20.0
 	val stateChanged = new AtomicBoolean
 
 	new (width : double, height : double) {
 		this.width = width
 		this.height = height
-		//this.timeManager = timeManager
+		// this.timeManager = timeManager
+		this.model.initialize(new Rectangle2d(0.0, 0.0, width, height))
 	}
-	
-	new {
-		this.width = 700.0
-		this.height = 700.0
-	}
-	
-	var model = new QuadTreeNode.DefaultQuadTreeNode<ISituatedObject>
-	val agentBodyList : Map<UUID, AgentBody> = new TreeMap
-	
 	
 	def getAgentBody(id : UUID) : AgentBody {
 		synchronized (this.agentBodyList) {
 			this.agentBodyList.get(id)
 		}	
 	}
-
+	
 	def getAgentBodies : Iterable<AgentBody> {
 		synchronized (this.agentBodyList) {
 			return Collections.unmodifiableCollection(this.agentBodyList.values)
 		}
 	}
 	
-	def getAllObjects : Iterable<? extends ISituatedObject> { model.allUserData }
+	def getSpatialDataStructure : SpatialDataStructure<ISituatedObject> { 
+		this.model
+	}
+	
+	def getAllObjects : Iterable<ISituatedObject> { 
+		var s = this.model.getData
+		System.out.println("All objects : "+s.size)
+		s
+	}
 	
 	def applyInfluences(motionInfluences : Collection<MotionInfluence>) {
+		System.out.println("Apply influences")
 		
 		var influenceList = new ArrayList(motionInfluences)
 		var actions = new ArrayList<AnimatAction>(influenceList.size)
@@ -98,26 +105,45 @@ class Environment {
 		}
 
 	}
+	/*
+	 * Notifies listeners about changes in the environment.
+	 */
+	protected def fireEnvironmentChange {
+		var ^event = new EnvironmentEvent(this)
+		listener.receiveEvent(^event)
+		
+	}
 
+	def getState : WorldModelState {
+		new WorldModelState(this)
+	}
+	
 	def runBehavior {
-//		if (this.init.getAndSet(false)) {
-//			fireEnvironmentChange
-//		}
+		System.out.println("Running environment CLASS behavior")
+		if (this.init.getAndSet(false)) {
+			fireEnvironmentChange
+		}
 
 		this.stateChanged.set(false)
 
 		var motionInfluences = new ArrayList<MotionInfluence>
 		var otherInfluences = new ArrayList<Influence>
+		
 		var bodies : List<AgentBody>
+		
 		synchronized (this.agentBodyList) {
+			
 			bodies = new ArrayList(this.agentBodyList.size)
 			bodies.addAll(this.agentBodyList.values)
+		
 		}
+		
 		for(body : bodies) {
 			var mi = body.consumeMotionInfluence
 			if (mi !== null) {
 				motionInfluences += mi
 			}
+			
 			for (i : body.consumeOtherInfluences) {
 				if (i instanceof KillInfluence) {
 					stateChanged()
@@ -131,17 +157,63 @@ class Environment {
 				} else {
 					otherInfluences += i
 				}
-				}
-		}
-		
+			}
 		}
 
+		/*
+		 * Compute endogenous behavior influences : anything that is fired by the environment itself, and not an agent
+		 */
+//		for (i : computeEndogenousBehaviorInfluences) {
+//			if (i instanceof MotionInfluence) {
+//				motionInfluences += i
+//			} else if (!(i instanceof KillInfluence)) {
+//				otherInfluences += i
+//			}
+		// }
+		if (!motionInfluences.isEmpty || !otherInfluences.isEmpty) {
+			//Only apply motion Influences for now
+			applyInfluences(motionInfluences/*, otherInfluences, this.timeManager*/)
+		}
+		
+		if (this.stateChanged.get) {
+			fireEnvironmentChange
+		}
+
+		//this.timeManager.increment
+
+		var list : List<Percept>
+		for (body : bodies) {
+			list = body.computePerceptions
+			body.setPerceptions(list ?: emptyList)
+		}	
+	}
+
+	/*
+	 * Compute this agent's body perceptions
+	 */
+	def computePerceptions(^agent : AgentBody) : List<Percept> {
+		var percepts = new ArrayList<Percept>
+		var frustum = ^agent.frustum
+		if (frustum !== null) {
+			//Don't worry about perceptions yet
+			
+//			var frustumShape = frustum.toShape(^agent.position, ^agent.direction)
+//			var dataIterator = this.model.dataIterator(frustumShape)
+//			var filteringIterator = frustum.filter(dataIterator)
+//			while (filteringIterator.hasNext) {
+//				var obj = filteringIterator.next
+//				percepts += new Percept(obj)
+//			}
+		}
+		return percepts
+	}
+
 	def onAgentBodyCreated(body : AgentBody) {
-		this.model.addUserData(body)
+		this.model.addData(body)
 	}
 
 	def onAgentBodyDestroyed(body : AgentBody) {
-		this.model.removeUserData(body)
+		this.model.removeData(body)
 	}
 	
 	protected final def computeSteeringTranslation(obj : IMobileObject, move : Vector2d/*, clock : TimeManager*/) : Vector2d {
@@ -204,7 +276,7 @@ class Environment {
 	}
 
 	protected synchronized def addAgentBody(body : AgentBody, position : Point2d, direction : double) {
-		if (true) {
+		if (this.init.get) {
 			synchronized (this.agentBodyList) {
 				this.agentBodyList.put(body.id, body)
 			}
@@ -220,5 +292,9 @@ class Environment {
 		synchronized (this.agentBodyList) {
 			return this.agentBodyList.size
 		}
+	}
+
+	def addListener(listener : EventListener) {
+			this.listener = listener
 	}
 }

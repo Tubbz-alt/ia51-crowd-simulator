@@ -13,7 +13,7 @@ import org.arakhne.afc.math.MathUtil
 abstract class AbstractMobileObject extends AbstractSituatedObject implements IMobileObject {
 	
 	val maxLinearSpeed : double
-	val maxLinearAcceleration : double
+	val maxLinearAcceleration : double 
 	val maxAngularSpeed : double
 	val maxAngularAcceleration : double
 

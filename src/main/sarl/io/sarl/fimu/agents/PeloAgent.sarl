@@ -36,7 +36,7 @@ agent PeloAgent {
 		// Event trigger before the agent begin to live or to be used.
 		// You should put all the initialization statements in this block of code.
 		this.wanderBehavior = new KinematicWanderBehavior
-		emit(new SimulationAgentReady)
+		//emit(new SimulationAgentReady)
 		info("The agent was started.")
 	}
 
@@ -97,7 +97,7 @@ agent PeloAgent {
 //			)
 
 	// For testing purpose...
-	doNothing
+	//doNothing
 	}
 
 	def emitInfluence(output : MotionAlgorithmOutput, influences : Influence*) {

@@ -3,16 +3,15 @@
  */
 package io.sarl.fimu.environment
 
-import org.arakhne.afc.math.geometry.d2.d.Point2d
-import io.sarl.fimu.environment.IShapedObject
-import java.util.UUID
 import java.io.Serializable
+import java.util.UUID
+import org.arakhne.afc.math.geometry.d2.d.Point2d
 
 /** 
  * @author Léon
  * Any object with a position
  */
-interface ISituatedObject extends IShapedObject{
+interface ISituatedObject extends IShapedObject, Cloneable, Comparable<ISituatedObject>{
 	
 	def getPosition() : Point2d
 	
@@ -23,5 +22,7 @@ interface ISituatedObject extends IShapedObject{
 	def getId() : UUID
 
 	def getType : Serializable
+	
+	def clone : ISituatedObject
 	
 }

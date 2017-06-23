@@ -1,166 +1,153 @@
-package io.sarl.fimu.agents
-
-import io.sarl.core.Behaviors
-import io.sarl.core.DefaultContextInteractions
-import io.sarl.core.Initialize
-import io.sarl.core.InnerContextAccess
-import io.sarl.core.Lifecycle
-import io.sarl.core.Logging
-import io.sarl.core.MemberJoined
-import io.sarl.fimu.Positions
-import io.sarl.fimu.environment.AgentBodyMapper
-import io.sarl.fimu.environment.Environment
-import io.sarl.fimu.events.CreateArea
-import io.sarl.fimu.events.Exit
-import io.sarl.fimu.events.Freeze
-import io.sarl.fimu.events.Launch
-import io.sarl.fimu.events.SetupSettings
-import io.sarl.fimu.events.SimulationAgentReady
-import io.sarl.fimu.events.StartSimulation
-import io.sarl.fimu.gui.FXMLViewerController
-import io.sarl.util.OpenEventSpaceSpecification
-import java.util.List
-import java.util.Random
-import java.util.UUID
-
-/*
- * This agent manages the whole simulation. NOT THE SAME AS ENVIRONMENT AGENT !
- */
-agent SimulationAgent {
-	uses DefaultContextInteractions, Lifecycle, Behaviors, Logging, InnerContextAccess
-	
-	
-	var waitingAgents = 0
-	
-	var rocketsQuantity : Integer
-	var fireQuantity : Integer
-	var gravity : Double
-	var grid : Positions = new Positions
-	var maxWidth = 10.0
-	var exited = false
-	
-	/*
-	 * Configure according to GUI settings
-	 */
-//	on SetupSettings {
-//		this.rocketsQuantity = occurrence.rocketsQuantity
-//		this.fireQuantity = occurrence.fireQuatity
-//		this.gravity = occurrence.gravity
-//		this.maxWidth = occurrence.maxWidth
+//package io.sarl.fimu.agents
+//
+//import io.sarl.core.Behaviors
+//import io.sarl.core.DefaultContextInteractions
+//import io.sarl.core.Initialize
+//import io.sarl.core.InnerContextAccess
+//import io.sarl.core.Lifecycle
+//import io.sarl.core.Logging
+//import io.sarl.core.MemberJoined
+//import io.sarl.fimu.Positions
+//import io.sarl.fimu.environment.AgentBodyMapper
+//import io.sarl.fimu.environment.Environment
+//import io.sarl.fimu.events.Exit
+//import io.sarl.fimu.events.Freeze
+//import io.sarl.fimu.events.Launch
+//import io.sarl.fimu.events.SimulationAgentReady
+//import io.sarl.fimu.events.StartSimulation
+//import io.sarl.fimu.gui.FXMLViewerController
+//import io.sarl.util.OpenEventSpaceSpecification
+//import java.util.List
+//import java.util.UUID
+//
+///*
+// * This agent manages the whole simulation. NOT THE SAME AS ENVIRONMENT AGENT !
+// */
+//agent SimulationAgent {
+//	uses DefaultContextInteractions, Lifecycle, Behaviors, Logging, InnerContextAccess
+//	
+//	
+//	var waitingAgents = 0
+//	
+//	var rocketsQuantity : Integer
+//	var fireQuantity : Integer
+//	var gravity : Double
+//	var grid : Positions = new Positions
+//
+//
+//	
+//	/*
+//	 * Configure according to GUI settings
+//	 */
+////	on SetupSettings {
+////		this.rocketsQuantity = occurrence.rocketsQuantity
+////		this.fireQuantity = occurrence.fireQuatity
+////		this.gravity = occurrence.gravity
+////		this.maxWidth = occurrence.maxWidth
+////	}
+//	
+//	/* 
+//	 * Initialization when no parameters are specified, without a GUI
+//	 */
+//	on Initialize [occurrence.parameters.empty] {
+//		
+//		info("Preparing Simulation Agent... (No parameters = no GUI) ")
+//
+//		var environment = new Environment()
+//		var ispace = defaultContext.createSpace(OpenEventSpaceSpecification, UUID.randomUUID)
+//
+//		ispace.register(asEventListener)
+//		
+//		// Initial draw here 
+//		
+//		emit(new SimulationAgentReady)
+//
+//		info("Simulation Agent ready !")
+//
 //	}
-	/* 
-	 * Kill itself on Exit signal after all inner agent are killed
-	 */
-	on Exit [!hasMemberAgent] {
-		killMe
-	}
-	/* 
-	 * Transmit Exit signal to all inner agent
-	 */
-	on Exit [hasMemberAgent && !exited] {
-		exited = true
-		innerContext.defaultSpace.emit(new Exit)
-	}
-	/* 
-	 * Initialization when no parameters are specified, without a GUI
-	 */
-	on Initialize [occurrence.parameters.empty] {
-		
-		info("Preparing Simulation Agent... (No parameters = no GUI) ")
-
-		var environment = new Environment()
-		var ispace = defaultContext.createSpace(OpenEventSpaceSpecification, UUID.randomUUID)
-
-		ispace.register(asEventListener)
-		
-		// Initial draw here 
-		
-		emit(new SimulationAgentReady)
-
-		info("Simulation Agent ready !")
-
-	}
-	/* 
-	 * Initialization with parameters and a GUI
-	 */
-	on Initialize [!occurrence.parameters.empty] {
-
-		info("Preparing Simulation Agent...")
-
-		var ctrl = occurrence.parameters.get(0) as FXMLViewerController
-		var environment = occurrence.parameters.get(1) as Environment
-
-			//Add a test agent
-			environment.createPelo;
-		
-		var ispace = defaultContext.createSpace(OpenEventSpaceSpecification, UUID.randomUUID)
-		var mapper = (occurrence.parameters.get(2) as AgentBodyMapper)
-		
-
-		ctrl.setGUISpace(ispace)
-		ispace.register(asEventListener)
-
-		waitingAgents = environment.agentBodies.size + 1
-
-		var environmentId = spawn(typeof(EnvironmentAgent), environment, ispace.spaceID.ID)
-
-		var agentParameters : List<Object> = newArrayList(ispace.spaceID.ID, environmentId)
-		for (var i = 4; i < occurrence.parameters.size; i++) {
-			agentParameters += occurrence.parameters.get(i)
-		}
-
-		for (body : environment.agentBodies) {
-			var agentType = mapper.getAgentTypeForBody(body)
-			spawnInContextWithID(agentType, body.id, defaultContext, agentParameters.toArray)
-		}
-		
-		ctrl.draw(environment.allObjects.iterator())
-		// ctrl.listenAndDraw(grid)
-		
-		//emit(new SimulationAgentReady)
-		info("Simulation Agent ready !")
-
-	}
-	/* 
-	 * Create and configure every RocketLauncher
-	 */
-//	on CreateArea {
-//		var x : Double
-//		var i = 0
-//		var rnd = new Random()
-//		//while (i < rocketsQuantity) {
-//			x = rnd.nextDouble() * maxWidth
-//			//spawnInContext(PeloAgent, getInnerContext, x, 0.0)
-//			i++;
-//		//}
+//	/* 
+//	 * Initialization with parameters and a GUI
+//	 */
+//	on Initialize [!occurrence.parameters.empty] {
+//
+//		info("Preparing Simulation Agent...")
+//		
+//		var ctrl = occurrence.parameters.get(0) as FXMLViewerController
+//		var environment = occurrence.parameters.get(1) as Environment
+//		
+//		/*Important ! Create the space in which the agents are going to be*/
+//		var ispace = defaultContext.createSpace(OpenEventSpaceSpecification, UUID.randomUUID)
+//		
+//		var mapper = (occurrence.parameters.get(2) as AgentBodyMapper)
+//		
+//		
+//		ctrl.setGUISpace(ispace)
+//		ispace.register(asEventListener)
+//
+////		waitingAgents = environment.agentBodies.size + 1
+//
+//		//Create the environment agent, which lives in the SAME SPACE
+//		var environmentId = spawn(typeof(EnvironmentAgent), environment, ispace.spaceID.ID)
+//		
+//		//Add a test agent
+//		environment.createPelo;
+//		var agentParameters : List<Object> = newArrayList(ispace.spaceID.ID, environmentId)
+//		for (var i = 4; i < occurrence.parameters.size; i++) {
+//			agentParameters += occurrence.parameters.get(i)
+//		}
+//
+//		for (body : environment.agentBodies) {
+//			var agentType = mapper.getAgentTypeForBody(body)
+//			spawnInContextWithID(agentType, body.id, defaultContext, agentParameters.toArray)
+//		}
+//		
+//		ctrl.draw(environment.allObjects)
+//	
+//		info("Simulation Agent ready !")
+//
 //	}
-	
-	/* 
-	 * Transmit Freeze signal
-	 */
-	on Freeze [!isFromMe(occurrence)] {
-		innerContext.defaultSpace.emit(occurrence)
-	}
-	/* 
-	 * Start all RocketLauncher when everything is ready
-	 */
-	on MemberJoined [occurrence.inInnerDefaultSpace && memberAgentCount == rocketsQuantity] {
-		info("Area is Ready: All rockets are here")
-		innerContext.defaultSpace.emit(new Launch)
-	}
-
-
-	on SimulationAgentReady [!occurrence.fromMe] {
-		synchronized (this) {
-			waitingAgents--
-			if (waitingAgents <= 0) {
-				emit(new StartSimulation)
-				killMe
-			}
-		}
-	}
-
-	on Freeze [!isFromMe(occurrence)] {
-		innerContext.defaultSpace.emit(occurrence)
-	}
-}
+//	/* 
+//	 * Create and configure every RocketLauncher
+//	 */
+////	on CreateArea {
+////		var x : Double
+////		var i = 0
+////		var rnd = new Random()
+////		//while (i < rocketsQuantity) {
+////			x = rnd.nextDouble() * maxWidth
+////			//spawnInContext(PeloAgent, getInnerContext, x, 0.0)
+////			i++;
+////		//}
+////	}
+//	
+//	/* 
+//	 * Transmit Freeze signal
+//	 */
+//	on Freeze [!isFromMe(occurrence)] {
+//		innerContext.defaultSpace.emit(occurrence)
+//	}
+//	/* 
+//	 * Start all RocketLauncher when everything is ready
+//	 */
+//	on MemberJoined [occurrence.inInnerDefaultSpace && memberAgentCount == rocketsQuantity] {
+//		info("Area is Ready: All rockets are here")
+//		innerContext.defaultSpace.emit(new Launch)
+//	}
+//
+//
+//	on SimulationAgentReady [!occurrence.fromMe] {
+//		synchronized (this) {
+////			This part was here to wait all the initial agents before starting. Since we start empty we don't need it ?
+////			waitingAgents--
+////			if (waitingAgents <= 0) {
+//				emit(new StartSimulation)
+//				//Do we really need to commit suicide ?
+//				//killMe
+////			}
+//		}
+//	}
+//
+//	on Freeze [!isFromMe(occurrence)] {
+//		innerContext.defaultSpace.emit(occurrence)
+//	}
+//}
