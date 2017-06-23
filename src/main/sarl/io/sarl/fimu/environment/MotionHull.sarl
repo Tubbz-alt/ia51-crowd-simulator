@@ -1,0 +1,319 @@
+/* 
+ * $Id$
+ * 
+ * Copyright (c) 2011-17 Stephane GALLAND <stephane.galland@utbm.fr>.
+ * 
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * This program is free software; you can redistribute it and/or modify
+ */
+package io.sarl.fimu.environment
+
+import com.google.common.base.Objects
+import java.awt.geom.PathIterator
+import java.lang.ref.SoftReference
+import org.arakhne.afc.math.MathConstants
+import org.arakhne.afc.math.MathUtil
+import org.arakhne.afc.math.geometry.d2.Point2D
+import org.arakhne.afc.math.geometry.d2.Transform2D
+import org.arakhne.afc.math.geometry.d2.afp.Circle2afp
+import org.arakhne.afc.math.geometry.d2.afp.Ellipse2afp
+import org.arakhne.afc.math.geometry.d2.afp.MultiShape2afp
+import org.arakhne.afc.math.geometry.d2.afp.OrientedRectangle2afp
+import org.arakhne.afc.math.geometry.d2.afp.Parallelogram2afp
+import org.arakhne.afc.math.geometry.d2.afp.Path2afp
+import org.arakhne.afc.math.geometry.d2.afp.PathIterator2afp
+import org.arakhne.afc.math.geometry.d2.afp.Rectangle2afp
+import org.arakhne.afc.math.geometry.d2.afp.RoundRectangle2afp
+import org.arakhne.afc.math.geometry.d2.afp.Segment2afp
+import org.arakhne.afc.math.geometry.d2.afp.Triangle2afp
+import org.arakhne.afc.math.geometry.d2.d.AbstractShape2d
+import org.arakhne.afc.math.geometry.d2.d.Circle2d
+import org.arakhne.afc.math.geometry.d2.d.Point2d
+import org.arakhne.afc.math.geometry.d2.d.Rectangle2d
+import org.arakhne.afc.math.geometry.d2.d.Shape2d
+import org.arakhne.afc.math.geometry.d2.d.Tuple2d
+import org.arakhne.afc.math.geometry.d2.d.Vector2d
+
+/** 2D Path with doubleing-point values.
+ *
+ * @author St&eacute;phane GALLAND &lt;stephane.galland@utbm.fr&gt;
+ * @version $Name$ $Revision$ $Date$
+ */
+class MotionHull extends AbstractShape2d<MotionHull> {
+
+	val start = new Point2d
+	val direction = new Vector2d
+	val size : double
+	
+	var bounds : SoftReference<Rectangle2d> = null
+	
+	/**
+	 * @param point
+	 * @param vector
+	 * @param lateralSize
+	 */
+	new(point : Point2d, vector : Vector2d, lateralSize : double) {
+		this.start.set(point)
+		this.direction.set(vector)
+		this.size = lateralSize
+	}
+
+//	override equals(obj : Object) : boolean {
+//		if (obj instanceof MotionHull) {
+//			return this.start == obj.start && this.direction == obj.direction
+//				&& this.size == obj.size
+//		}
+//		return false
+//	}
+	
+	override hashCode : int {
+		Objects.hashCode(this.start, this.direction, this.size)
+	}
+	
+	/** Replies a copy of the start point of this path.
+	 * 
+	 * @return the start point.
+	 */
+	def getStart : Point2d {
+		this.start.clone
+	}
+
+	/** Replies a copy of the direction of this path.
+	 * 
+	 * @return the upper point.
+	 */
+	def getDirection : Vector2d {
+		this.direction.clone
+	}
+	
+	override toString : String {
+		return "[" + this.start.toString() + "-" + this.direction.toString() + "]";
+	}
+
+	/** Replies if an intersection exists between this rectangle and the given shape.
+	 * 
+	 * @param s - the shape.
+	 * @return <code>true</code> if an intersection exists.
+	 */
+	def intersects(s : Shape2d<?>) : boolean {
+		if (s instanceof MotionHull) {
+			var end = this.start + this.direction
+			var end2 = (s as MotionHull).start + (s as MotionHull).direction
+//			var d = new Segment2d(this.start, end).com(new Segment2d(s.start,end2))
+			var d = Segment2afp.calculatesDistanceSquaredSegmentSegment(this.start.x,this.start.y, end.x,end.y, (s as MotionHull).start.x,(s as MotionHull).start.y, end2.x,end2.y)
+			return d < (this.size + (s as MotionHull).size)
+		}
+		if (s instanceof Rectangle2d) {
+			var end = this.start + this.direction
+			var pa = new Point2d(s.minX, s.maxY)
+			var pb = new Point2d(s.maxX, s.minY)
+			var d1 = Segment2afp.calculatesDistanceSquaredSegmentSegment(s.minX, s.minY, pa.x, pa.y, this.start.x, this.start.y, end.x, end.y)
+			var d2 = Segment2afp.calculatesDistanceSquaredSegmentSegment(pa.x, pa.y, s.maxX, s.maxY, this.start.x, this.start.y, end.x, end.y)
+			var d3 = Segment2afp.calculatesDistanceSquaredSegmentSegment(s.maxX, s.maxY, pb.x, pb.y, this.start.x, this.start.y, end.x, end.y)
+			var d4 = Segment2afp.calculatesDistanceSquaredSegmentSegment(pb.x, pb.y, s.minX, s.minY, this.start.x, this.start.y, end.x, end.y)
+			var d = MathUtil::min(d1, d2, d3, d4)
+			return d < this.size
+		}
+		if (s instanceof Circle2d) {
+			var center = s.center
+			var end = this.start + this.direction
+			//return MathUtil::distancePointToSegment(center, this.start, end) < (this.size + s.radius)
+			return Segment2afp.calculatesDistanceSegmentPoint(this.start.x, this.start.y, end.x, end.y, center.x, center.y) < (this.size + s.radius)
+		}
+		throw new IllegalArgumentException
+	}
+	
+	/** Replies the center point of the rectangle.
+	 * 
+	 * @return the center point.
+	 */
+	def getCenter : Point2d {
+		new Point2d(
+				this.start.x + this.direction.x / 2d,
+				this.start.y + this.direction.y / 2d)
+	}
+
+	def translate(vector : Tuple2d<?>) : MotionHull {
+		new MotionHull(new Point2d(
+				this.start.x + vector.x,
+				this.start.y + vector.y),
+				this.direction.clone,
+				this.size)
+	}
+
+	def getBounds : Rectangle2d {
+		var bb = this.bounds?.get
+		if (bb === null) {
+			var x = this.start.x + this.direction.x
+			var y = this.start.y + this.direction.y
+			var d = this.direction.clone
+			d.turn(MathConstants.DEMI_PI)
+			
+			var x1 = this.start.x + d.x
+			var y1 = this.start.y + d.y
+			var x2 = this.start.x - d.x
+			var y2 = this.start.y - d.y
+			var x3 = x + d.x
+			var y3 = y + d.y
+			var x4 = x - d.x
+			var y4 = y - d.y
+			
+			bb = new Rectangle2d(
+					MathUtil::min(x1, x2, x3, x4),
+					MathUtil::min(y1, y2, y3, y4),
+					MathUtil::max(x1, x2, x3, x4),
+					MathUtil::max(y1, y2, y3, y4))
+			this.bounds = new SoftReference(bb)
+		}
+		return bb
+	}
+	
+	def getMaxDemiSize : double {
+		this.size
+	}
+	
+	override contains(rectangle : Rectangle2afp<?, ?, ?, ?, ?, ?>) : boolean {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override contains(x : double, y : double) : boolean {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override getClosestPointTo(ellipse : Ellipse2afp<?, ?, ?, ?, ?, ?>) : Point2d {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override getClosestPointTo(circle : Circle2afp<?, ?, ?, ?, ?, ?>) : Point2d {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override getClosestPointTo(rectangle : Rectangle2afp<?, ?, ?, ?, ?, ?>) : Point2d {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override getClosestPointTo(segment : Segment2afp<?, ?, ?, ?, ?, ?>) : Point2d {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override getClosestPointTo(triangle : Triangle2afp<?, ?, ?, ?, ?, ?>) : Point2d {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override getClosestPointTo(orientedRectangle : OrientedRectangle2afp<?, ?, ?, ?, ?, ?>) : Point2d {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override getClosestPointTo(parallelogram : Parallelogram2afp<?, ?, ?, ?, ?, ?>) : Point2d {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override getClosestPointTo(roundRectangle : RoundRectangle2afp<?, ?, ?, ?, ?, ?>) : Point2d {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override getClosestPointTo(path : Path2afp<?, ?, ?, ?, ?, ?>) : Point2d {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override intersects(ellipse : Ellipse2afp<?, ?, ?, ?, ?, ?>) : boolean {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override intersects(circle : Circle2afp<?, ?, ?, ?, ?, ?>) : boolean {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override intersects(rectangle : Rectangle2afp<?, ?, ?, ?, ?, ?>) : boolean {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override intersects(segment : Segment2afp<?, ?, ?, ?, ?, ?>) : boolean {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override intersects(triangle : Triangle2afp<?, ?, ?, ?, ?, ?>) : boolean {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override intersects(iterator : PathIterator2afp<?>) : boolean {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override intersects(orientedRectangle : OrientedRectangle2afp<?, ?, ?, ?, ?, ?>) : boolean {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override intersects(parallelogram : Parallelogram2afp<?, ?, ?, ?, ?, ?>) : boolean {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override intersects(roundRectangle : RoundRectangle2afp<?, ?, ?, ?, ?, ?>) : boolean {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override intersects(multishape : MultiShape2afp<?, ?, ?, ?, ?, ?, ?>) : boolean {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override translate(dx : double, dy : double) {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override clear {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override equalsToShape(shape : MotionHull) : boolean {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override getClosestPointTo(point : Point2D<?, ?>) : Point2d {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override getDistanceL1(point : Point2D<?, ?>) : double {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override getDistanceLinf(point : Point2D<?, ?>) : double {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override getDistanceSquared(point : Point2D<?, ?>) : double {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override getFarthestPointTo(point : Point2D<?, ?>) : Point2d {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override getPathIterator(transform : Transform2D) {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override isEmpty : boolean {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override set(shape : MotionHull) {
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+	}
+	
+	override toBoundingBox(box : Rectangle2d) {
+		
+	}
+	
+}

@@ -4,7 +4,9 @@
 package io.sarl.fimu.environment
 
 import io.sarl.fimu.events.EnvironmentEvent
+import io.sarl.fimu.utils.tree.iterator.LeafTreeIterator
 import io.sarl.fimu.utils.tree.tree4d.QuadTree
+import io.sarl.fimu.utils.tree.tree4d.QuadTreeNode
 import io.sarl.lang.core.EventListener
 import java.util.ArrayList
 import java.util.Collection
@@ -66,49 +68,160 @@ class Environment {
 		s
 	}
 	
-	def applyInfluences(motionInfluences : Collection<MotionInfluence>) {
-		System.out.println("Apply influences")
-		
-		var influenceList = new ArrayList(motionInfluences)
-		var actions = new ArrayList<AnimatAction>(influenceList.size)
-		
-		for (index1 : 0 ..< influenceList.size) {
-			var inf1 = influenceList.get(index1)
-			var body1 = getAgentBody(inf1.emitter)
-			if (body1 !== null) {
-				var move : Vector2d
-				var rotation : double
-				if (inf1.type === DynamicType::STEERING) {
-					move = body1.computeSteeringTranslation(inf1.linearInfluence/*, timeManager*/)
-					rotation = body1.computeSteeringRotation(inf1.angularInfluence/*, timeManager*/)
-				} else {
-					move = body1.computeKinematicTranslation(inf1.linearInfluence/* , timeManager*/)
-					rotation = body1.computeKinematicRotation(inf1.angularInfluence/* , timeManager*/)
-				}
-
-				var body1Bounds = body1.shape
-
-				// Trivial collision detection
-				//trivialCollisionDetection(index1, influenceList, body1Bounds, move)
-
-				actions += new AnimatAction(body1, move, rotation)
-
-			}
-		}
+//	def applyInfluences(motionInfluences : Collection<MotionInfluence>) {
+//		System.out.println("Apply influences")
+//		
+//		var influenceList = new ArrayList(motionInfluences)
+//		var actions = new ArrayList<AnimatAction>(influenceList.size)
+//		
+//		for (index1 : 0 ..< influenceList.size) {
+//			var inf1 = influenceList.get(index1)
+//			var body1 = getAgentBody(inf1.emitter)
+//			if (body1 !== null) {
+//				var move : Vector2d
+//				var rotation : double
+//				if (inf1.type === DynamicType::STEERING) {
+//					move = body1.computeSteeringTranslation(inf1.linearInfluence/*, timeManager*/)
+//					rotation = body1.computeSteeringRotation(inf1.angularInfluence/*, timeManager*/)
+//				} else {
+//					move = body1.computeKinematicTranslation(inf1.linearInfluence/* , timeManager*/)
+//					rotation = body1.computeKinematicRotation(inf1.angularInfluence/* , timeManager*/)
+//				}
+//
+//				var body1Bounds = body1.shape
+//
+//				// Trivial collision detection
+//				//trivialCollisionDetection(index1, influenceList, body1Bounds, move)
+//
+//				actions += new AnimatAction(body1, move, rotation)
+//
+//			}
+//		}
 
 		// Apply the actions
-		for (action : actions) {
-			var body = action.objectToMove
-			if (body !== null) {
-				body.move(action.translation, action.rotation)
+//		for (action : actions) {
+//			var body = action.objectToMove
+//			if (body !== null) {
+//				body.move(action.translation, action.rotation)
+//			}
+//		}
+//
+	//	}
+def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluences : Collection<Influence> /* ,timeManager : TimeManager*/) {
+		var actionTree : QuadTree<SituatedArtifact> = new QuadTree
+		var root : QuadTreeNode<SituatedArtifact> = new QuadTreeNode(new Rectangle2d(0.0, 0.0, this.width, this.height))
+		actionTree.setRoot(root)
+		//
+		// Consider other influences
+		for (influence : otherInfluences) {
+//			if (influence instanceof RemoveInfluence) {
+//				// TODO assert (this.mouseTarget != null);
+//				this.dataStructure.removeData(this.mouseTarget)
+//				this.mouseTarget = null
+//				stateChanged
+//			} else if (influence instanceof TargetAdditionInfluence) {
+//				// TODO assert (this.mouseTarget == null);
+//				this.mouseTarget = new MouseTarget(influence.position.x, influence.position.y)
+//				this.dataStructure.addData(this.mouseTarget)
+//				stateChanged
+//			} else if (influence instanceof TeletransportInfluence) {
+//				// TODO assert (this.mouseTarget != null);
+//				this.dataStructure.removeData(this.mouseTarget)
+//				this.mouseTarget.setMousePosition(influence.position, this.timeManager.lastStepDuration, this.width,
+//					this.height)
+//				this.dataStructure.addData(this.mouseTarget)
+//				stateChanged
+//			} else if (influence instanceof TypeChangeInfluence) {
+//				var id = influence.influencedObject
+//				if (id === null) {
+//					id = influence.emitter
+//				}
+//				if (id !== null) {
+//					var body = getAgentBodyFor(id)
+//					if (body !== null) {
+//						body.type = influence.type
+//					}
+//				}
+//				stateChanged
 			}
+		//
+		// Put the influences in a spatial tree
+		for (mi : motionInfluences) {
+			var id = mi.influencedObject
+			if (id === null) {
+				id = mi.emitter
+			}
+			var body = getAgentBody(id)
+
+			var linearMotion : Vector2d
+			var angularMotion : double
+			if (mi.type === DynamicType.KINEMATIC) {
+				linearMotion = body.computeKinematicTranslation(mi.linearInfluence/*, this.timeManager*/)
+				angularMotion = body.computeKinematicRotation(mi.angularInfluence/* , this.timeManager*/)
+			} else {
+				linearMotion = body.computeSteeringTranslation(mi.linearInfluence/* , this.timeManager*/)
+				angularMotion = body.computeSteeringRotation(mi.angularInfluence/* , this.timeManager*/)
+			}
+
+			actionTree.addData(new SituatedArtifact(body, linearMotion, angularMotion))
 		}
 
+		//
+		// Detect conflicts
+		actionTree.detectConflicts
+
+		//
+		// Apply Actions
+		for (action : actionTree.data) {
+			var obj = action.object
+			if (!action.empty && obj !== null) {
+				var b = this.model.removeData(obj)
+				// TODO assert (b) : "Object cannot be removed from quadtree: " + obj;
+				obj.move(action.linearMotion, action.angularMotion)
+				b = this.model.addData(obj)
+				// TODO assert (b) : "Object cannot be added in quadtree: " + obj;
+			}
+		}
 	}
-	/*
+
+	private def detectConflicts(actionTree : QuadTree<SituatedArtifact>) {
+		var iterator = new LeafTreeIterator(actionTree.root)
+		while (iterator.hasNext) {
+			var node = iterator.next
+			var influences : List<SituatedArtifact> = new ArrayList
+			do {
+				influences += node.data
+				node = node.parent
+			} while (node !== null)
+			for (i : 0 ..< influences.size) {
+				var inf1 = influences.get(i)
+				if (!inf1.isEmpty) {
+					var s1 = inf1.shape
+					for (obj : this.allObjects) {
+						if ((!(obj instanceof AgentBody)) && (s1.intersects(obj.shape))) {
+							inf1.clear
+							return
+						}
+					}
+					if (!inf1.empty && i < influences.size - 1) {
+						for (j : (i + 1) ..< influences.size) {
+							var inf2 = influences.get(j)
+							if (!inf2.empty) {
+								if (s1.intersects(inf2.shape)) {
+									inf2.clear
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	/* 
 	 * Notifies listeners about changes in the environment.
 	 */
-	protected def fireEnvironmentChange {
+	def fireEnvironmentChange {
 		var ^event = new EnvironmentEvent(this)
 		listener.receiveEvent(^event)
 		
@@ -172,7 +285,7 @@ class Environment {
 		// }
 		if (!motionInfluences.isEmpty || !otherInfluences.isEmpty) {
 			//Only apply motion Influences for now
-			applyInfluences(motionInfluences/*, otherInfluences, this.timeManager*/)
+			applyInfluences(motionInfluences, otherInfluences)/*, this.timeManager*/
 		}
 		
 		if (this.stateChanged.get) {
