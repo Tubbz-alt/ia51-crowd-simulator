@@ -47,7 +47,7 @@ agent FimuGoer extends AbstractAnimat {
 	
 	/**
 	 * An agent has core-defined music taste that never changes (musicTaste),
-	 * but it also has one that can change during the simulation, depending on multpiple parameters (currentMood)
+	 * but it also has one that can change during the simulation, depending on multiple parameters (currentMood)
 	 */
 	var musicTaste : MusicTaste
 	var currentMood : MusicTaste
@@ -126,9 +126,9 @@ agent FimuGoer extends AbstractAnimat {
 		}
 		else {
 			// 1) Try to drink from the Savoureuse
-			// 2) 40% drink
+			// 2) 40% chance: drink
 			//	3) walk away
-			// 4) 60% fall over
+			// 4) 60% chance: fall over
 			//	5) SAVOUREUSE BEHAVIOR TAKES OVER
 			//	6) ???
 			//	7) Profit
@@ -168,7 +168,7 @@ agent FimuGoer extends AbstractAnimat {
 		}
 		else {
 			// 1) Try to pee in the Savoureuse
-			// 2) 60% succeed
+			// 2) 70% succeed
 			//	3) walk away
 			// 4) 30% fall over
 			//	5) SAVOUREUSE BEHAVIOR TAKES OVER
@@ -179,7 +179,7 @@ agent FimuGoer extends AbstractAnimat {
 	
 	def concertResolver() {
 		if (drunkMeter < 20) {
-			// Find and go to the nearest appropriate scene
+			// Find and go to the nearest and most appropriate scene
 			var nearestScene = analyzeScenes(1)
 			// moveTo(nearestScene)
 		}
