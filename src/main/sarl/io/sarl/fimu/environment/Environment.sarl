@@ -349,7 +349,7 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 		if (obj instanceof AbstractMobileObject) {
 			return obj.computeKinematicRotation(move/*, clock*/)
 		}
-		throw new IllegalArgumentException("obj") 	// $NON-NLS-1$
+		throw new IllegalArgumentException("obj") 	// $NON-NLS-1$ 
 	}
 
 	protected final def move(obj : IMobileObject, instantTranslation : Vector2d, instantRotation : double) {

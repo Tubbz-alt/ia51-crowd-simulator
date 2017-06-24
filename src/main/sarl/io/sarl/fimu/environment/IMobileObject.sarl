@@ -18,7 +18,7 @@ interface IMobileObject extends ISituatedObject {
 	
 	def getMaxLinearAcceleration : double
 	
-	def getMaxAngularAcceleration : double
+	def getMaxAngularAcceleration : double 
 	
 	def getCurrentAngularSpeed : double
 	

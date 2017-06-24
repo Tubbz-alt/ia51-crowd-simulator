@@ -38,19 +38,7 @@ class FXMLViewerController implements EventListener {
 	var environment : Environment
 
 	@FXML
-	private var draw_zone : Canvas;
-	@FXML
-	private var gravity_display : Label;
-	@FXML
-	private var rocket_quantity_display : Label;
-	@FXML
-	private var fire_quantity_display : Label;
-	@FXML
-	private var gravity_input : ScrollBar;
-	@FXML
-	private var rocket_quantity_input : ScrollBar;
-	@FXML
-	private var fire_quantity_input : ScrollBar;
+	private var draw_zone : Canvas; 
 	@FXML
 	private var setup_button : Button;
 	@FXML
@@ -63,7 +51,7 @@ class FXMLViewerController implements EventListener {
 	}
 	
 	public def getDrawZoneHeight {
-		draw_zone.getHeight
+		draw_zone.getHeight 
 	}
 		/* 
 		 * Emit a kill signal wen the app is exited
@@ -80,27 +68,7 @@ class FXMLViewerController implements EventListener {
 		this.ispace = ispace;
 		this.ispace.register(this);
 	}
-
-	/* 
-	 * Get gravity
-	 */
-	public def getGravity() : double {
-		return gravity_input.getValue();
-	}
-
-	/* 
-	 * Get Rocket Quantity
-	 */
-	public def getRocketQuantity() : int {
-		return rocket_quantity_input.getValue() as int;
-	}
-
-	/* 
-	 * Get Fire Quantity
-	 */
-	public def getFireQuantity() : int {
-		return fire_quantity_input.getValue() as int;
-	}
+	
 	/* 
 	 * Draw every positions on main canvas
 	 */
@@ -178,9 +146,6 @@ class FXMLViewerController implements EventListener {
 			SimulationLauncher.main(this);
 			launched = true;
 			areaCreated = false;
-			gravity_input.setDisable(true)
-			fire_quantity_input.setDisable(true)
-			rocket_quantity_input.setDisable(true)
 			setup_button.setDisable(true) 
 		}
 		//this.ispace.emit(ievent);
@@ -210,35 +175,6 @@ class FXMLViewerController implements EventListener {
 		launch_button.setDisable(false);
 		this.ispace.emit(new Freeze(true));
 	}
-
-	/* 
-	 * Add a listener on gravity
-	 */
-	@FXML
-	protected def actionGravityDisplay() {
-		gravity_input.valueProperty().addListener [
-			gravity_display.setText(String.format("%.1f", gravity_input.getValue()));
-		]
-	}
-	/* 
-	 * Add a listener on rocket quantity
-	 */
-	@FXML
-	protected def actionRocketQuantityDisplay() {
-		rocket_quantity_input.valueProperty().addListener [
-			rocket_quantity_display.setText(String.format("%.0f", rocket_quantity_input.getValue()));
-		];
-	}
-
-	/* 
-	 * Add a listener on fire quantity
-	 */
-	@FXML
-	protected def actionFireQuantityDisplay() {
-		fire_quantity_input.valueProperty().addListener [
-			fire_quantity_display.setText(String.format("%.0f", fire_quantity_input.getValue()));
-		]
-	}
 	/* 
 	 * Get ID of the object on the space
 	 */
@@ -246,7 +182,6 @@ class FXMLViewerController implements EventListener {
 	public def getID() : UUID {
 		return this.id;
 	}
-
 	/* 
 	 * Needed for implementing EventListener
 	 */
