@@ -15,6 +15,6 @@ class SimulationLauncher {
 	static def main(controller : FXMLViewerController) {
 		Boot::offline = true
 		Boot::verboseLevel = 7
-		Boot::startJanus(typeof(EnvironmentAgent), controller, new Environment(controller.getDrawZoneWidth(),controller.getDrawZoneHeight()), new AgentBodyMapper)
+		Boot::startJanus(typeof(EnvironmentAgent), controller, new Environment(controller.getDrawZoneWidth()-10,controller.getDrawZoneHeight()-10), new AgentBodyMapper)
 	}
 }

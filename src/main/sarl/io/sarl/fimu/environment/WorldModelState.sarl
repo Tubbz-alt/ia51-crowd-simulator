@@ -22,6 +22,7 @@ package io.sarl.fimu.environment
 
 import java.util.ArrayList
 import java.util.List
+import org.arakhne.afc.math.geometry.d2.d.Rectangle2d
 
 /**
  * State of the world model.  
@@ -32,6 +33,8 @@ import java.util.List
 class WorldModelState { 
 
 	val objects : List<ISituatedObject>
+	public val envShape : Rectangle2d
+	
 //	val dataStructure : SpatialDataStructure<ISituatedObject>
 	
 	/**
@@ -42,6 +45,8 @@ class WorldModelState {
 		for (o : environment.allObjects) {
 			this.objects += o.clone
 		}
+		
+		this.envShape = environment.spatialDataStructure.bounds;
 //		
 //		var array : byte[]
 //		var baos = new ByteArrayOutputStream

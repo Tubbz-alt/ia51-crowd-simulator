@@ -84,7 +84,7 @@ agent EnvironmentAgent {
 		}
 		
 		//This probably has to change
-		ctrl.draw() 
+		//ctrl.draw() 
 		runBehavior
 	}
 	

@@ -28,7 +28,7 @@ class AgentBody extends AbstractMobileObject {
 		super(id, shape, maxLinearSpeed, maxLinearAcceleration, maxAngularSpeed, maxAngularAcceleration)
 		//TODO assert (frustum == null || Objects.equals(id, frustum.getOwner()));
 		this.frustum = frustum
-		//this.type = "BODY"
+		this.type = "BODY"
 	}
 
 	def getFrustum : IFrustum {

@@ -162,12 +162,16 @@ abstract class AbstractMobileObject extends AbstractSituatedObject implements IM
 
 	protected def move(dx : double, dy : double,/* simulationDuration : double,*/ worldWidth : double,
 		worldHeight : double) : Vector2d {
+		
 		// Ensure that the motion in inside the bounds of the world.
 		var r = new Vector2d(dx, dy)
 		var currentShape = this.shape
 		var targetShape = currentShape
-		targetShape.translate(r.x, r.y)
+		targetShape.translate(r.x, r.y) 
 		var targetBounds = targetShape.toBoundingBox
+		 
+		//Move the shape on the actual body position
+		targetBounds.center = this.position
 		if (targetBounds.minX < 0) {
 			r.addX(-targetBounds.minX)
 		} else if (targetBounds.maxX > worldWidth) {
@@ -182,7 +186,7 @@ abstract class AbstractMobileObject extends AbstractSituatedObject implements IM
 
 		// Update the position
 		addPosition(r.x, r.y)
-		
+		System.out.println("New position (x:  "+position+")")
 		// Update dynamic properties
 		//if (simulationDuration > 0) {
 			this.linearMove.set(r.x, r.y)

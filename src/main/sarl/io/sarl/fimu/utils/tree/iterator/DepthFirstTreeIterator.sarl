@@ -41,9 +41,7 @@ class DepthFirstTreeIterator<N extends SpatialTreeNode<N, ?>> implements Iterato
 	 */
 	new (root : N) {
 		if (root !== null) {
-			System.out.println(this.stack.size)
 			this.stack += root
-			System.out.println(this.stack.size)
 		}
 	}
 	

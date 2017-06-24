@@ -40,7 +40,7 @@ class Environment {
 	
 	val init = new AtomicBoolean(true)
 	var listener : EventListener
-	static val NORMAL_PERSON_SIZE = 20.0
+	static val NORMAL_PERSON_SIZE = 5.0 
 	val stateChanged = new AtomicBoolean
 
 	new (width : double, height : double) {
@@ -68,7 +68,7 @@ class Environment {
 	
 	def getAllObjects : Iterable<ISituatedObject> { 
 		var s = this.model.getData
-		System.out.println("All objects : "+s.size)
+//		System.out.println("All objects : "+s.size)
 		s
 	}
 	
@@ -369,15 +369,15 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 
 	private def createBody(type : String) {
 		var id = UUID::randomUUID
-		var body = new AgentBody(id, 
+		var body = new AgentBody(id,    
 								 new Circle2d(0.0, 0.0, NORMAL_PERSON_SIZE), // body
-								 5.0, // max linear speed m/s
-							 	 0.5, // max linear acceleration (m/s)/s
-								 MathConstants::PI / 4.0, // max angular speed r/s
-								 MathConstants::PI / 10.0, // max angular acceleration (r/s)/s
-								 new CircleFrustum(id, PERCEPTION_RADIUS)); // no frustum since computePerceptionsFor() is not using this parameter
+								 1, // max linear speed m/s
+							 	 1, // max linear acceleration (m/s)/s
+								 MathConstants::PI / 4, // max angular speed r/s
+								 MathConstants::PI /10, // max angular acceleration (r/s)/s
+								 new CircleFrustum(id, PERCEPTION_RADIUS));
 		// body.name = MessageFormat::format("Body #{0}", this.agentBodyNumber + 1)
-		body.type = type
+		body.type = type 
 		addAgentBody(body, randomPosition, Math::random as double * MathConstants::TWO_PI)
 	}
 	
@@ -395,6 +395,9 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 		if (this.init.get) {
 			synchronized (this.agentBodyList) {
 				this.agentBodyList.put(body.id, body)
+			}
+			if(body.shape instanceof Circle2d){
+				(body.shape as Circle2d).center = position
 			}
 			body.position = position
 			body.angle = direction
