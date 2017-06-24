@@ -45,5 +45,7 @@ interface SpatialTreeNodeFactory<N extends SpatialTreeNode<?,?>> extends Seriali
 	 * @return the max number of data.
 	 */
 	def getMaxDataCountPerNode : int
+	
+	def setTree(t : SpatialTree)
 
 }

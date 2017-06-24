@@ -24,6 +24,7 @@ import io.sarl.fimu.environment.IShapedObject
 import io.sarl.fimu.utils.tree.SpatialTreeNodeFactory
 import io.sarl.fimu.utils.tree.abstracts.AbstractSpatialTree
 import org.arakhne.afc.math.geometry.d2.d.Rectangle2d
+import io.sarl.fimu.utils.tree.SpatialTree
 
 /**
  * Definition of a quadtree.
@@ -46,15 +47,22 @@ class QuadTree<D extends IShapedObject> extends AbstractSpatialTree<QuadTreeNode
 	 * @version $Name$ $Revision$ $Date$
 	 */
 	private static class QuadTreeNodeFactory<D extends IShapedObject> implements SpatialTreeNodeFactory<QuadTreeNode<D>> {
-
+		var tree : QuadTree<D>
+		
 		override newInstance(bounds : Rectangle2d, parent : QuadTreeNode<D>) : QuadTreeNode<D> {
-			new QuadTreeNode(bounds)
+			var q = new QuadTreeNode(bounds)
+			q.setTree(tree)
+			q
 		}
 		
 		override getMaxDataCountPerNode : int {
 			1
 		}
-		
-	}
+	
+		override setTree(t : SpatialTree) {
+			this.tree = t as QuadTree<D>
+		}
+	
+}
 
 }

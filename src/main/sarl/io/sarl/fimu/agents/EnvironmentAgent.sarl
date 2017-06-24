@@ -41,7 +41,7 @@ agent EnvironmentAgent {
 	var ctrl : FXMLViewerController
 	
 	
-	on Initialize {
+	on Initialize { 
 
 		this.ctrl = occurrence.parameters.get(0) as FXMLViewerController
 		this.environment = occurrence.parameters.get(1) as Environment
@@ -59,13 +59,14 @@ agent EnvironmentAgent {
 		//Tell the simulator agent that we are ready to rock
 		//emit(new SimulationAgentReady)
 	}
-	
+	 
 	 /* 
 	 * Create and configure every RocketLauncher
 	 */
 	on CreateArea {
 		var i = 0
 		//create a bunch of test agents
+		environment.createPelo;
 		environment.createPelo;
 		// Pas sûr du premier arguement
 		

@@ -41,7 +41,7 @@ import org.arakhne.afc.math.geometry.d2.d.Shape2d
  */
 abstract class AbstractSpatialTree<N extends SpatialTreeNode<N, D>, D extends IShapedObject> implements SpatialTree<N, D> {
 
-	var factory : SpatialTreeNodeFactory<N> 
+	var factory : SpatialTreeNodeFactory<N>
 	var root : N
 	
 	/**
@@ -50,6 +50,7 @@ abstract class AbstractSpatialTree<N extends SpatialTreeNode<N, D>, D extends IS
 	new (factory : SpatialTreeNodeFactory<N>) {
 		//TODO assert (factory != null);
 		this.factory = factory;
+		factory.tree = this
 	}
 	
 	private def readObject(stream : ObjectInputStream) {

@@ -39,7 +39,6 @@ import org.arakhne.afc.math.geometry.d2.d.Rectangle2d
  * @version $Name$ $Revision$ $Date$
  */
 abstract class AbstractSpatialTreeNode<N extends SpatialTreeNode<N, D>, D extends IShapedObject> implements SpatialTreeNode<N, D> {
-
 	var bounds : Rectangle2d
 	var data : Collection<D>
 	transient var parentNode : WeakReference<N>
@@ -158,7 +157,7 @@ abstract class AbstractSpatialTreeNode<N extends SpatialTreeNode<N, D>, D extend
 	 *
 	 * @param tree the container.
 	 */
-	protected def setTree(tree : SpatialTree<N, D>) {
+	def setTree(tree : SpatialTree<N, D>) {
 		if (tree === null) {
 			this.tree = null
 		} else {

@@ -34,7 +34,7 @@ import org.arakhne.afc.math.geometry.d2.d.Rectangle2d
  * @author St&eacute;phane GALLAND &lt;stephane.galland@utbm.fr&gt;
  * @version $Name$ $Revision$ $Date$
  */
-abstract class AbstractArraySpatialTreeNode<N extends AbstractArraySpatialTreeNode<N, D>, D extends IShapedObject> extends AbstractSpatialTreeNode<N, D> {
+abstract class AbstractArraySpatialTreeNode<N extends AbstractArraySpatialTreeNode<N, D>, D extends IShapedObject> extends AbstractSpatialTreeNode<N, D> { 
 
 	/** Array of the child nodes.
 	 */
