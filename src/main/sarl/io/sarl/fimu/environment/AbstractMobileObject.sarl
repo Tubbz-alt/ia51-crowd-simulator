@@ -1,10 +1,12 @@
 package io.sarl.fimu.environment
 
-import org.arakhne.afc.math.geometry.d2.d.Vector2d
-import org.arakhne.afc.math.geometry.d2.d.Shape2d
-import static extension java.lang.Math.*
+import io.sarl.fimu.utils.time.TimeManager
 import java.util.UUID
 import org.arakhne.afc.math.MathUtil
+import org.arakhne.afc.math.geometry.d2.d.Shape2d
+import org.arakhne.afc.math.geometry.d2.d.Vector2d
+
+import static extension java.lang.Math.*
 
 /** 
  * Any environment object that is able to move.
@@ -34,7 +36,7 @@ abstract class AbstractMobileObject extends AbstractSituatedObject implements IM
 		this.angle = a
 	}
 	
-	protected def computeSteeringTranslation(move : Vector2d) : Vector2d {
+	protected def computeSteeringTranslation(move : Vector2d, clock : TimeManager) : Vector2d {
 		var length = move.length
 
 		var v : Vector2d
@@ -48,7 +50,7 @@ abstract class AbstractMobileObject extends AbstractSituatedObject implements IM
 			acceleration = acceleration.abs / length
 			v = move * acceleration
 
-			//v *= 0.5 * clock.lastStepDuration
+			v = v * (0.5 * clock.lastStepDuration)
 			v += this.linearMove
 		} else {
 			v = this.linearMove.clone
@@ -63,9 +65,9 @@ abstract class AbstractMobileObject extends AbstractSituatedObject implements IM
 					if(v * this.linearMove < 0f) -length else length, 0f, this.maxLinearSpeed);
 
 			// Compute the Newton law, part 2 (from speed to distance)
-			//var factor = clock.lastStepDuration * speed.abs / length
+			var factor = clock.lastStepDuration * speed.abs / length
 
-			return v //* factor
+			return v * factor
 		}
 
 		return new Vector2d
@@ -77,12 +79,12 @@ abstract class AbstractMobileObject extends AbstractSituatedObject implements IM
 	 * @param clock is the simulation time manager
 	 * @return the linear instant motion.
 	 */
-	protected def computeKinematicTranslation(move : Vector2d/*, clock : TimeManager*/) : Vector2d {
+	protected def computeKinematicTranslation(move : Vector2d, clock : TimeManager) : Vector2d {
 		var speed = move.length
 		if (speed != 0f) {
 			// Apply Newton-Euler-1 law
-			//var factor = clock.lastStepDuration * MathUtil::clamp(speed, 0, this.maxLinearSpeed) / speed
-			return move //* factor
+			var factor = clock.lastStepDuration * MathUtil::clamp(speed, 0, this.maxLinearSpeed) / speed
+			return move * factor
 		}
 		return new Vector2d
 	}
@@ -93,12 +95,12 @@ abstract class AbstractMobileObject extends AbstractSituatedObject implements IM
 	 * @param clock is the simulation time manager
 	 * @return the angular instant motion.
 	 */
-	protected def computeKinematicRotation(move : double/*, clock : TimeManager*/) : double {
+	protected def computeKinematicRotation(move : double, clock : TimeManager) : double {
 		var speed = move.abs
 		if (speed != 0f) {
 			// Apply Newton-Euler-1 law
-			//var factor = clock.lastStepDuration * MathUtil::clamp(speed, 0, this.maxAngularSpeed) / speed
-			return move //* factor
+			var factor = clock.lastStepDuration * MathUtil::clamp(speed, 0, this.maxAngularSpeed) / speed
+			return move * factor
 		}
 		return 0f
 	}
@@ -109,7 +111,7 @@ abstract class AbstractMobileObject extends AbstractSituatedObject implements IM
 	 * @param clock is the simulation time manager
 	 * @return the angular instant motion.
 	 */
-	protected def computeSteeringRotation(move : double/*, clock : TimeManager*/) : double {
+	protected def computeSteeringRotation(move : double, clock : TimeManager) : double {
 
 		var v : double
 
@@ -120,7 +122,7 @@ abstract class AbstractMobileObject extends AbstractSituatedObject implements IM
 			// Apply Newton law, first part (from acceleration to speed)
 			acceleration = acceleration.abs / move.abs
 			v = move * acceleration
-			//v *= 0.5f * clock.lastStepDuration
+			v *= 0.5 * clock.lastStepDuration
 			v += this.currentAngularSpeed
 		} else {
 			v = this.currentAngularSpeed
@@ -132,9 +134,9 @@ abstract class AbstractMobileObject extends AbstractSituatedObject implements IM
 			var speed = MathUtil.clamp(v, -this.maxAngularSpeed, this.maxAngularSpeed);
 
 			// Compute the Newton law, part 2 (from speed to distance)
-			//var factor = clock.lastStepDuration * speed.abs / v.abs;
+			var factor = clock.lastStepDuration * speed.abs / v.abs;
 
-			return v // * factor
+			return v * factor
 		}
 
 		return 0f
@@ -160,7 +162,7 @@ abstract class AbstractMobileObject extends AbstractSituatedObject implements IM
 		linearMove.clone
 	}
 
-	protected def move(dx : double, dy : double,/* simulationDuration : double,*/ worldWidth : double,
+	protected def move(dx : double, dy : double, simulationDuration : double, worldWidth : double,
 		worldHeight : double) : Vector2d {
 		
 		// Ensure that the motion in inside the bounds of the world.
@@ -188,24 +190,24 @@ abstract class AbstractMobileObject extends AbstractSituatedObject implements IM
 		addPosition(r.x, r.y)
 		System.out.println("New position (x:  "+position+")")
 		// Update dynamic properties
-		//if (simulationDuration > 0) {
+		if (simulationDuration > 0) {
 			this.linearMove.set(r.x, r.y)
 			var distance = this.linearMove.length
 			if (distance > 0) {
 				this.linearMove.normalize
-				this.linearMove = this.linearMove * (distance /*/ simulationDuration*/)
+				this.linearMove = this.linearMove * (distance / simulationDuration)
 			}
-//		} else {
-//			this.linearMove.set(0, 0)
-//		}
+		} else {
+			this.linearMove.set(0, 0)
+		}
 
 		return r
 	}
 
-	protected def rotate(rotation : double/*, simulationDuration : double*/) {
+	protected def rotate(rotation : double, simulationDuration : double) {
 		// TODO assert (!Double.isNaN(rotation)) : LocalizedString.getString(getClass(), "INVALID_ROTATION", getName());
 		// TODO assert (!Double.isNaN(simulationDuration)) : LocalizedString.getString(getClass(), "INVALID_DURATION", getName());
 		this.angle += rotation
-		this.currentAngularSpeed = rotation /*/ simulationDuration*/
+		this.currentAngularSpeed = rotation / simulationDuration
 	}
 }

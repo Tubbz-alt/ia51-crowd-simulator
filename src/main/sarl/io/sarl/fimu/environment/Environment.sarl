@@ -5,6 +5,8 @@ package io.sarl.fimu.environment
 
 import io.sarl.fimu.environment.frustum.CircleFrustum
 import io.sarl.fimu.events.EnvironmentEvent
+import io.sarl.fimu.utils.time.StepTimeManager
+import io.sarl.fimu.utils.time.TimeManager
 import io.sarl.fimu.utils.tree.iterator.LeafTreeIterator
 import io.sarl.fimu.utils.tree.tree4d.QuadTree
 import io.sarl.fimu.utils.tree.tree4d.QuadTreeNode
@@ -29,25 +31,29 @@ import org.arakhne.afc.math.geometry.d2.d.Vector2d
  */
 class Environment {
 
-
-	var PERCEPTION_RADIUS = 150.0
+	
+	static val  PERCEPTION_RADIUS = 150.0
+	static val NORMAL_PERSON_SIZE = 5.0 
 	
 	var model = new QuadTree<ISituatedObject>
 	val agentBodyList : Map<UUID, AgentBody> = new TreeMap
-	
 	val width : double
 	val height : double
 	
 	val init = new AtomicBoolean(true)
 	var listener : EventListener
-	static val NORMAL_PERSON_SIZE = 5.0 
+	var timeManager : TimeManager
 	val stateChanged = new AtomicBoolean
 
 	new (width : double, height : double) {
 		this.width = width
 		this.height = height
-		// this.timeManager = timeManager
+		this.timeManager = new StepTimeManager(500)
 		this.model.initialize(new Rectangle2d(0.0, 0.0, width, height))
+	}
+	
+	def getTimeManager : TimeManager{
+		return timeManager
 	}
 	
 	def getAgentBody(id : UUID) : AgentBody {
@@ -111,7 +117,7 @@ class Environment {
 //		}
 //
 	//	}
-def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluences : Collection<Influence> /* ,timeManager : TimeManager*/) {
+def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluences : Collection<Influence>, timeManager : TimeManager) {
 		var actionTree : QuadTree<SituatedArtifact> = new QuadTree
 		var root : QuadTreeNode<SituatedArtifact> = new QuadTreeNode(new Rectangle2d(0.0, 0.0, this.width, this.height))
 		actionTree.setRoot(root)
@@ -160,11 +166,11 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 			var linearMotion : Vector2d
 			var angularMotion : double
 			if (mi.type === DynamicType.KINEMATIC) {
-				linearMotion = body.computeKinematicTranslation(mi.linearInfluence/*, this.timeManager*/)
-				angularMotion = body.computeKinematicRotation(mi.angularInfluence/* , this.timeManager*/)
+				linearMotion = body.computeKinematicTranslation(mi.linearInfluence, this.timeManager)
+				angularMotion = body.computeKinematicRotation(mi.angularInfluence, this.timeManager)
 			} else {
-				linearMotion = body.computeSteeringTranslation(mi.linearInfluence/* , this.timeManager*/)
-				angularMotion = body.computeSteeringRotation(mi.angularInfluence/* , this.timeManager*/)
+				linearMotion = body.computeSteeringTranslation(mi.linearInfluence, this.timeManager)
+				angularMotion = body.computeSteeringRotation(mi.angularInfluence, this.timeManager)
 			}
 
 			actionTree.addData(new SituatedArtifact(body, linearMotion, angularMotion))
@@ -289,7 +295,7 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 		// }
 		if (!motionInfluences.isEmpty || !otherInfluences.isEmpty) {
 			//Only apply motion Influences for now
-			applyInfluences(motionInfluences, otherInfluences)/*, this.timeManager*/
+			applyInfluences(motionInfluences, otherInfluences, this.timeManager)
 		}
 		
 		if (this.stateChanged.get) {
@@ -331,32 +337,32 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 		this.model.removeData(body)
 	}
 	
-	protected final def computeSteeringTranslation(obj : IMobileObject, move : Vector2d/*, clock : TimeManager*/) : Vector2d {
+	protected final def computeSteeringTranslation(obj : IMobileObject, move : Vector2d, clock : TimeManager) : Vector2d {
 		if (obj instanceof AbstractMobileObject) {
-			return obj.computeSteeringTranslation(move/*, clock*/)
+			return obj.computeSteeringTranslation(move, clock)
 		}
 		throw new IllegalArgumentException("obj") 			// $NON-NLS-1$
 	}
 
-	protected final def computeKinematicTranslation(obj : IMobileObject, move : Vector2d/*,	clock : TimeManager*/) : Vector2d {
+	protected final def computeKinematicTranslation(obj : IMobileObject, move : Vector2d, clock : TimeManager) : Vector2d {
 		if (obj instanceof AbstractMobileObject) {
-			return obj.computeKinematicTranslation(move/*, clock*/)
+			return obj.computeKinematicTranslation(move, clock)
 		}
 		throw new IllegalArgumentException("obj") 	// $NON-NLS-1$
 	}
 	
-	protected final def computeKinematicRotation(obj : IMobileObject, move : double/*, clock : TimeManager*/) : double {
+	protected final def computeKinematicRotation(obj : IMobileObject, move : double, clock : TimeManager) : double {
 		if (obj instanceof AbstractMobileObject) {
-			return obj.computeKinematicRotation(move/*, clock*/)
+			return obj.computeKinematicRotation(move, clock)
 		}
 		throw new IllegalArgumentException("obj") 	// $NON-NLS-1$ 
 	}
 
 	protected final def move(obj : IMobileObject, instantTranslation : Vector2d, instantRotation : double) {
 		if (obj instanceof AbstractMobileObject) {
-			//var duration = this.timeManager.lastStepDuration
-			obj.move(instantTranslation.x, instantTranslation.y/*, duration*/, this.width, this.height)
-			obj.rotate(instantRotation/*, duration*/)
+			var duration = this.timeManager.lastStepDuration
+			obj.move(instantTranslation.x, instantTranslation.y, duration, this.width, this.height)
+			obj.rotate(instantRotation, duration)
 			stateChanged()
 		} else {
 			throw new IllegalArgumentException("obj")

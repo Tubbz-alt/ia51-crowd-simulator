@@ -7,6 +7,7 @@ import io.sarl.fimu.environment.Environment
 import io.sarl.fimu.environment.ISituatedObject
 import io.sarl.fimu.environment.Influence
 import io.sarl.fimu.environment.Percept
+import io.sarl.fimu.utils.time.TimePercept
 import java.util.List
 
 /* 
@@ -105,13 +106,13 @@ event InfluenceEvent {
 
 event PerceptionEvent {
 	val body : Percept
-	//val time : TimePercept
+	val time : TimePercept
 	val perceptions : List<Percept>
 
-	new (p : List<Percept>, b : Percept/*, t : TimePercept*/) {
+	new (p : List<Percept>, b : Percept, t : TimePercept) {
 		this.perceptions = p
 		this.body = b
-		//this.time = t
+		this.time = t
 	}
 }
 /*

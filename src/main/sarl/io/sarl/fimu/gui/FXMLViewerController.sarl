@@ -21,8 +21,6 @@ import javafx.fxml.FXML
 import javafx.scene.canvas.Canvas
 import javafx.scene.canvas.GraphicsContext
 import javafx.scene.control.Button
-import javafx.scene.control.Label
-import javafx.scene.control.ScrollBar
 import javafx.scene.paint.Color
 import javafx.util.Duration
 import org.arakhne.afc.math.geometry.d2.d.Circle2d
@@ -46,7 +44,7 @@ class FXMLViewerController implements EventListener {
 	@FXML
 	private var stop_button : Button;
 	
-	public def getDrawZoneWidth {
+	public def getDrawZoneWidth { 
 		draw_zone.getWidth
 	}
 	
@@ -72,13 +70,12 @@ class FXMLViewerController implements EventListener {
 	/* 
 	 * Draw every positions on main canvas
 	 */
-	public def draw(/*o : Iterable<? extends ISituatedObject>*/) {
-		System.out.println("Painting")					
-		
+	public def draw(/*o : Iterable<? extends ISituatedObject>*/) {		
 		var gc : GraphicsContext = draw_zone.getGraphicsContext2D();
 		var wait : PauseTransition = new PauseTransition(Duration.seconds(0.03)); 
 		//Uncomment to clear the zone at each step
-//		gc.clearRect(0, 0, draw_zone.getWidth(), draw_zone.getHeight());
+		gc.clearRect(0, 0, draw_zone.getWidth(), draw_zone.getHeight());
+		
 		val state = this.lastState
 		if(state === null) return;
 		for (o : state.objects) {
