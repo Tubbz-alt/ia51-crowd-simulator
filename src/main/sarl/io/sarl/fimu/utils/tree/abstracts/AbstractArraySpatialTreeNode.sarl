@@ -21,6 +21,7 @@
 package io.sarl.fimu.utils.tree.abstracts
 
 import io.sarl.fimu.environment.IShapedObject
+import io.sarl.fimu.environment.MotionHull
 import java.util.ArrayList
 import java.util.Collections
 import java.util.Iterator
@@ -77,6 +78,9 @@ abstract class AbstractArraySpatialTreeNode<N extends AbstractArraySpatialTreeNo
 	private def addInChildWhenPossible(data : D) : boolean {
 		// TODO assert (this.children != null);
 		var dataShape = data.shape
+		if(dataShape instanceof MotionHull){
+			dataShape = dataShape.getBounds
+		}
 		var selectedChild : N
 		for (child : this.children) {
 			if (child.bounds.intersects(dataShape)) {
@@ -133,6 +137,9 @@ abstract class AbstractArraySpatialTreeNode<N extends AbstractArraySpatialTreeNo
 	private def removeFromChildWhenPossible(data : D) : boolean {
 		// TODO assert (this.children != null);
 		var dataShape = data.shape
+		if (dataShape instanceof MotionHull) {
+			dataShape = dataShape.getBounds
+		}
 		var selectedChild : N
 		for (child : this.children) {
 			if (child.bounds.intersects(dataShape)) {

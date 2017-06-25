@@ -137,7 +137,7 @@ abstract class AbstractSpatialTreeNode<N extends SpatialTreeNode<N, D>, D extend
 	 *
 	 * @param parent the new parent node.
 	 */
-	protected def setParent(parent : N) {
+	public def setParent(parent : N) {
 		var t : SpatialTree
 		if (parent === null) {
 			this.parentNode = null

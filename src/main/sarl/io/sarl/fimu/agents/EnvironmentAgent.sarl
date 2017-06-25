@@ -68,6 +68,14 @@ agent EnvironmentAgent {
 		//create a bunch of test agents
 		environment.createPelo;
 		environment.createPelo;
+		environment.createPelo;
+		environment.createPelo;
+		environment.createPelo;
+		environment.createPelo;
+		environment.createPelo;
+		environment.createPelo;
+		environment.createPelo;
+		environment.createPelo;
 		// Pas sûr du premier arguement
 		
 		var agentParameters : List<Object> = newArrayList(getDefaultSpace.getSpaceID.ID, this.ID)
@@ -143,6 +151,7 @@ agent EnvironmentAgent {
 			}
 			var body = this.environment.getAgentBody(id)
 			body.influence(influence)
+			this.influences++
 		}
 		this.influences ++
 		//var v = this.influences.incrementAndGet

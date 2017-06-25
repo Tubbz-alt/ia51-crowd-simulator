@@ -32,7 +32,7 @@ import org.arakhne.afc.math.geometry.d2.d.Vector2d
 class Environment {
 
 	
-	static val  PERCEPTION_RADIUS = 150.0
+	static val  PERCEPTION_RADIUS = 20.0
 	static val NORMAL_PERSON_SIZE = 5.0 
 	
 	var model = new QuadTree<ISituatedObject>
@@ -119,8 +119,9 @@ class Environment {
 	//	}
 def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluences : Collection<Influence>, timeManager : TimeManager) {
 		var actionTree : QuadTree<SituatedArtifact> = new QuadTree
-		var root : QuadTreeNode<SituatedArtifact> = new QuadTreeNode(new Rectangle2d(0.0, 0.0, this.width, this.height))
-		actionTree.setRoot(root)
+//		var root : QuadTreeNode<SituatedArtifact> = new QuadTreeNode(new Rectangle2d(0.0, 0.0, this.width, this.height))
+//		actionTree.setRoot(root)
+		actionTree.initialize(new Rectangle2d(0.0, 0.0, this.width, this.height))
 		//
 		// Consider other influences
 		for (influence : otherInfluences) {
@@ -206,7 +207,7 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 			for (i : 0 ..< influences.size) {
 				var inf1 = influences.get(i)
 				if (!inf1.isEmpty) {
-					var s1 = inf1.shape
+					var s1 = inf1.shape as MotionHull
 					for (obj : this.allObjects) {
 						if ((!(obj instanceof AgentBody)) && (s1.intersects(obj.shape))) {
 							inf1.clear
@@ -302,7 +303,7 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 			fireEnvironmentChange
 		}
 
-		//this.timeManager.increment
+		this.timeManager.increment
 
 		var list : List<Percept>
 		for (body : bodies) {

@@ -52,6 +52,9 @@ class QuadTree<D extends IShapedObject> extends AbstractSpatialTree<QuadTreeNode
 		override newInstance(bounds : Rectangle2d, parent : QuadTreeNode<D>) : QuadTreeNode<D> {
 			var q = new QuadTreeNode(bounds)
 			q.setTree(tree)
+			if(parent != null){
+				q.parent = parent
+			}
 			q
 		}
 		
