@@ -1,11 +1,34 @@
 package io.sarl.fimu.agents
 
+import io.sarl.core.AgentKilled
+import io.sarl.core.AgentSpawned
+import io.sarl.core.ContextJoined
+import io.sarl.core.ContextLeft
+import io.sarl.core.DefaultContextInteractions
+import io.sarl.core.Destroy
+import io.sarl.core.Initialize
+import io.sarl.core.Logging
+import io.sarl.core.MemberJoined
+import io.sarl.core.MemberLeft
+import io.sarl.fimu.agents.actions.PhysicEnvironmentCapacity
+import io.sarl.fimu.agents.actions.PhysicEnvironmentSkill
 import io.sarl.core.Initialize
 import io.sarl.fimu.agents.behaviors.KinematicSeekBehavior
 import io.sarl.fimu.agents.behaviors.KinematicWanderBehavior
+import io.sarl.fimu.environment.DynamicType
+import io.sarl.fimu.environment.Influence
 import io.sarl.fimu.environment.Percept
 import java.util.List
+import io.sarl.fimu.events.PerceptionEvent
+import io.sarl.fimu.events.SimulationAgentReady
+import java.util.UUID
 import org.arakhne.afc.math.geometry.d2.d.Point2d
+import org.arakhne.afc.math.geometry.d2.d.Vector2d
+
+/**
+ * @author François
+ * 
+ */
 
 /**
  * Class for an agent who goes to attend concerts at the FIMU
@@ -22,7 +45,8 @@ import org.arakhne.afc.math.geometry.d2.d.Point2d
  * - maybe a bonus depending on the advancement of the project :)
  */
 
-agent FimuGoer /*extends AbstractAnimat*/ {
+agent FimuGoer /* extends AbstractAnimat */ {
+	uses Logging, PhysicEnvironmentCapacity, DefaultContextInteractions
 
 	var seekBehaviour : KinematicSeekBehavior
 	var wanderBehaviour : KinematicWanderBehavior
@@ -49,7 +73,54 @@ agent FimuGoer /*extends AbstractAnimat*/ {
 	var musicTaste : MusicTaste
 	var currentMood : MusicTaste
 	var currentNeed : Need
-	
+
+	/* EVENT HANDLERS */
+
+	on Initialize {
+		var physicSkill = new PhysicEnvironmentSkill(occurrence.parameters.get(0) as UUID,
+			occurrence.parameters.get(1) as UUID)
+		setSkill(physicSkill, PhysicEnvironmentCapacity)
+		// Event trigger before the agent begin to live or to be used.
+		// You should put all the initialization statements in this block of code.
+		this.wanderBehaviour = new KinematicWanderBehavior
+		// emit(new SimulationAgentReady)
+		info("The agent was started.")
+	}
+
+	on Destroy {
+		// Event trigger when the agent is destroyed from the system.
+		// You should put all the resource releasing statements in this block of code.
+		info("The agent was stopped.")
+	}
+
+	on AgentSpawned {
+		// A new agent has been spawned in our context.
+	}
+
+	on AgentKilled {
+		// A new agent has been killed in our context.
+	}
+
+	on ContextJoined {
+		// Event trigger when an agent of the level joins a shared context.
+		// Sent to a agent of the same level.
+	}
+
+	on ContextLeft {
+		// Event trigger when an agent of the level jleaves a shared context.
+		// Sent to a agent of the same level.
+	}
+
+	on MemberJoined {
+		// Event trigger when an agent joins one of our shared super-holons.
+		// Sent to all members of the considered super-holon.
+	}
+
+	on MemberLeft {
+		// Event trigger when an agent leaves one of our shared super-holons.
+		// Sent to all members of the considered super-holon.
+	}
+
 	/**
 	 * METHODS
 	 */
@@ -58,15 +129,17 @@ agent FimuGoer /*extends AbstractAnimat*/ {
 	 * Will find what the agent needs depending on its meters
 	 */ 
 	def analyzeNeeds() {
-		// Defined priority order: drink > eat > pee > talk > attend concerts
+		// Defined priority order: drink > pee > eat > talk > attend concerts
 		if (thirstMeter > 90) {
 			currentNeed = Need.WATER
 		}
-		else if (hungerMeter > 90) {
-			currentNeed = Need.FOOD
-		}
-		else if (peeMeter > 90) {
+		else if (peeMeter > 90)
+		{
 			currentNeed = Need.TOILETS
+		}
+		else if (hungerMeter > 90)
+		{
+			currentNeed = Need.FOOD
 		}
 		else if (talkMeter > 90) {
 			currentNeed = Need.TALK
@@ -262,12 +335,40 @@ agent FimuGoer /*extends AbstractAnimat*/ {
 //		}
 //	}
 		
-	def getSomething(caller: FimuGoer) {
-		
+	def doNothing {
+		influenceKinematic(new Vector2d, 0.0)
 	}
-	 
-//	on PerceptionEvent {
-//		var target = occurrence.perceptions.extractTarget
+
+	on PerceptionEvent {
+		// var target = occurrence.perceptions.first
+			emitInfluence(
+			this.wanderBehaviour.run(occurrence.body.position, occurrence.body.direction,
+				occurrence.body.currentLinearSpeed, occurrence.body.maxLinearSpeed, occurrence.body.currentAngularSpeed,
+				occurrence.body.maxAngularSpeed)
+		)
+		/* new TypeChangeInfluence("BODY") */
+		// )
+		// For testing purpose...
+		// doNothing
+	}
+
+	def emitInfluence(output : MotionAlgorithmOutput, influences : Influence*) {
+		if (output !== null) {
+			if (output.getType() === DynamicType::STEERING)
+				influenceSteering(output.linear, output.angular, influences)
+			else
+				influenceKinematic(output.linear, output.angular, influences);
+		} else {
+			influenceSteering(new Vector2d, 0f, influences)
+		}
+	}
+
+	def first(list : List<Percept>) : Percept {
+		if(list.isEmpty) null else list.get(0)
+	}
+
+	//	on PerceptionEvent {
+	// var target = occurrence.perceptions.extractTarget
 //
 //		if (target !== null) {
 //			// run the seek behaviour

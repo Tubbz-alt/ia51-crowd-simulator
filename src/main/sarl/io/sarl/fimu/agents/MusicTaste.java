@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.lang.Math;
 
 /** 
- * @author deqyra
+ * @author François
  * 
  * Class to represent the music taste of an agent, or the "musical orientation" of a scene.
  * Genres are associated to a 'like' value (i.e. 10 = love, -10 = hate).
