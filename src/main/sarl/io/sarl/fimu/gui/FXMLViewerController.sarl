@@ -4,6 +4,7 @@
 package io.sarl.fimu.gui
 
 import io.sarl.fimu.SimulationLauncher
+import io.sarl.fimu.environment.AgentBody
 import io.sarl.fimu.environment.Environment
 import io.sarl.fimu.environment.WorldModelState
 import io.sarl.fimu.events.CreateArea
@@ -21,7 +22,6 @@ import javafx.fxml.FXML
 import javafx.scene.canvas.Canvas
 import javafx.scene.canvas.GraphicsContext
 import javafx.scene.control.Button
-import javafx.scene.paint.Color
 import javafx.util.Duration
 import org.arakhne.afc.math.geometry.d2.d.Circle2d
 import org.arakhne.afc.math.geometry.d2.d.Rectangle2d
@@ -81,19 +81,19 @@ class FXMLViewerController implements EventListener {
 		if(state === null) return;
 		for (o : state.objects) {
 //			System.out.println("Object(x: " + o.position.x + ", y: " + o.position.y + ")") 
-			
-			gc.setFill(Color.YELLOW)
+			if (o instanceof AgentBody){
+				gc.setFill((o as AgentBody).color)
+			}
 			if(o.shape instanceof Circle2d){ 
 				gc.strokeOval(o.position.x-(o.shape.toBoundingBox.width/2), o.position.y-(o.shape.toBoundingBox.height/2),
 							o.shape.toBoundingBox.width, o.shape.toBoundingBox.height)
-				gc.setFill(Color.WHITE)
 				gc.fillOval(o.position.x,o.position.y,1,1)
 			} else if(o.shape instanceof Rectangle2d){
 				gc.fillRect(o.position.x, o.position.y, o.shape.toBoundingBox.width, o.shape.toBoundingBox.height)	 
 			} else {
 				gc.fillOval(o.position.x - 5, o.position.y - 5, o.shape.toBoundingBox.width, o.shape.toBoundingBox.height)
 			}
-		} 
+		}
 		System.out.println("Env(x: "+state.envShape.width+", y: "+state.envShape.height+")")
 		gc.strokeRect(0,0,state.envShape.width,state.envShape.height)
 //		wait.setOnFinished [ e |

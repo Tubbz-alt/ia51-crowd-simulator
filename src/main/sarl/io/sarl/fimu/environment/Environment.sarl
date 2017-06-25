@@ -9,7 +9,6 @@ import io.sarl.fimu.utils.time.StepTimeManager
 import io.sarl.fimu.utils.time.TimeManager
 import io.sarl.fimu.utils.tree.iterator.LeafTreeIterator
 import io.sarl.fimu.utils.tree.tree4d.QuadTree
-import io.sarl.fimu.utils.tree.tree4d.QuadTreeNode
 import io.sarl.lang.core.EventListener
 import java.util.ArrayList
 import java.util.Collection
@@ -19,12 +18,13 @@ import java.util.Map
 import java.util.TreeMap
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
+import javafx.scene.paint.Color
 import org.arakhne.afc.math.MathConstants
 import org.arakhne.afc.math.geometry.d2.d.Circle2d
 import org.arakhne.afc.math.geometry.d2.d.Point2d
 import org.arakhne.afc.math.geometry.d2.d.Rectangle2d
-import org.arakhne.afc.math.geometry.d2.d.Vector2d
 import org.arakhne.afc.math.geometry.d2.d.Shape2d
+import org.arakhne.afc.math.geometry.d2.d.Vector2d
 
 /** 
  * @author Léon
@@ -383,23 +383,28 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 	private def createBody(type : String) {
 		var id = UUID::randomUUID
 		
-		// Different body shapes based on whether the agent is a FimuGoer, a Scene, a Toilet, etc. 
+		// Different body shapes and colors based on whether the agent is a FimuGoer, a Scene, a Toilet, etc. 
 		var shape : Shape2d
+		var color : Color
 		if (type == "PELO" || type == "FIMUGOER")
 		{
 			shape = new Circle2d(0.0, 0.0, NORMAL_PERSON_SIZE)
+			color = Color.ANTIQUEWHITE
 		}
 		else if (type == "TOILETS")
 		{
 			shape = new Rectangle2d(0.0, 0.0, NORMAL_TOILET_W, NORMAL_TOILET_H)
+			color = Color.DARKKHAKI
 		}
 		else if (type == "DRINKSTAND" || type == "FOODSTAND")
 		{
 			shape = new Rectangle2d(0.0, 0.0, NORMAL_STAND_W, NORMAL_STAND_H)
+			color = Color.AQUAMARINE
 		}
 		else if (type == "SCENE")
 		{
 			shape = new Rectangle2d(0.0, 0.0, NORMAL_SCENE_W, NORMAL_SCENE_H)
+			color = Color.CADETBLUE
 		}
 		
 		var body = new AgentBody(id,    
@@ -408,7 +413,8 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 							 	 1, // max linear acceleration (m/s)/s
 								 MathConstants::PI / 4, // max angular speed r/s
 								 MathConstants::PI /10, // max angular acceleration (r/s)/s
-								 new CircleFrustum(id, PERCEPTION_RADIUS));
+								 new CircleFrustum(id, PERCEPTION_RADIUS),
+								 color);
 		// body.name = MessageFormat::format("Body #{0}", this.agentBodyNumber + 1)
 		body.type = type 
 		addAgentBody(body, randomPosition, Math::random as double * MathConstants::TWO_PI)

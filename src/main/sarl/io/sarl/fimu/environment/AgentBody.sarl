@@ -7,6 +7,7 @@ import io.sarl.fimu.environment.frustum.IFrustum
 import java.util.ArrayList
 import java.util.List
 import java.util.UUID
+import javafx.scene.paint.Color
 import org.arakhne.afc.math.MathUtil
 import org.arakhne.afc.math.geometry.d2.d.Shape2d
 import org.arakhne.afc.math.geometry.d2.d.Vector2d
@@ -22,15 +23,23 @@ class AgentBody extends AbstractMobileObject {
 	var motionInfluence : MotionInfluence
 	var otherInfluences : List<Influence> = new ArrayList
 	var perceptions : List<Percept> = new ArrayList
+	var color : Color
 
 	new (id : UUID, shape : Shape2d<?>, maxLinearSpeed : double,  maxLinearAcceleration : double, maxAngularSpeed : double,
-		maxAngularAcceleration : double, frustum : IFrustum) {
+		maxAngularAcceleration : double, frustum : IFrustum, color : Color = null) {
 		super(id, shape, maxLinearSpeed, maxLinearAcceleration, maxAngularSpeed, maxAngularAcceleration)
 		//TODO assert (frustum == null || Objects.equals(id, frustum.getOwner()));
 		this.frustum = frustum
 		this.type = "BODY"
+		this.color = color
+		if(color === null){
+			this.color = Color.YELLOW
+		}
 	}
-
+	
+	def getColor { color }
+	def setColor(c : Color ){ color = c}
+	
 	def getFrustum : IFrustum {
 		this.frustum
 	}
