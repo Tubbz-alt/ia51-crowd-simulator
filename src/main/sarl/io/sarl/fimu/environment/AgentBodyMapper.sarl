@@ -5,6 +5,11 @@ package io.sarl.fimu.environment
 
 import io.sarl.lang.core.Agent
 import io.sarl.fimu.agents.PeloAgent
+import io.sarl.fimu.agents.FoodStand
+import io.sarl.fimu.agents.DrinkStand
+import io.sarl.fimu.agents.Scene
+import io.sarl.fimu.agents.FimuGoer
+import io.sarl.fimu.agents.Toilets
 
 /** 
  * @author Léon
@@ -15,6 +20,21 @@ class AgentBodyMapper {
 		var agentType = body.type
 		if ("PELO" == agentType) {
 			return typeof(PeloAgent)
+		}
+		else if ("FOODSTAND" == agentType) {
+			return typeof(FoodStand)
+		}
+		else if ("DRINKSTAND" == agentType) {
+			return typeof(DrinkStand)
+		}
+		else if ("SCENE" == agentType) {
+			return typeof(Scene)
+		}
+		else if ("FIMUGOER" == agentType) {
+			return typeof(FimuGoer)
+		}
+		else if ("TOILETS" == agentType) {
+			return typeof(Toilets)
 		}
 		throw new IllegalArgumentException
 	}

@@ -24,6 +24,7 @@ import org.arakhne.afc.math.geometry.d2.d.Circle2d
 import org.arakhne.afc.math.geometry.d2.d.Point2d
 import org.arakhne.afc.math.geometry.d2.d.Rectangle2d
 import org.arakhne.afc.math.geometry.d2.d.Vector2d
+import org.arakhne.afc.math.geometry.d2.d.Shape2d
 
 /** 
  * @author Léon
@@ -31,9 +32,14 @@ import org.arakhne.afc.math.geometry.d2.d.Vector2d
  */
 class Environment {
 
-	
-	static val  PERCEPTION_RADIUS = 20.0
-	static val NORMAL_PERSON_SIZE = 5.0 
+	static val PERCEPTION_RADIUS = 150.0
+	static val NORMAL_PERSON_SIZE = 5.0
+	static val NORMAL_TOILET_W = 15.0
+	static val NORMAL_TOILET_H = 10.0
+	static val NORMAL_SCENE_W = 150.0
+	static val NORMAL_SCENE_H = 75.0
+	static val NORMAL_STAND_W = 45.0
+	static val NORMAL_STAND_H = 20.0
 	
 	var model = new QuadTree<ISituatedObject>
 	val agentBodyList : Map<UUID, AgentBody> = new TreeMap
@@ -376,8 +382,28 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 
 	private def createBody(type : String) {
 		var id = UUID::randomUUID
+		
+		// Different body shapes based on whether the agent is a FimuGoer, a Scene, a Toilet, etc. 
+		var shape : Shape2d
+		if (type == "PELO" || type == "FIMUGOER")
+		{
+			shape = new Circle2d(0.0, 0.0, NORMAL_PERSON_SIZE)
+		}
+		else if (type == "TOILETS")
+		{
+			shape = new Rectangle2d(0.0, 0.0, NORMAL_TOILET_W, NORMAL_TOILET_H)
+		}
+		else if (type == "DRINKSTAND" || type == "FOODSTAND")
+		{
+			shape = new Rectangle2d(0.0, 0.0, NORMAL_STAND_W, NORMAL_STAND_H)
+		}
+		else if (type == "SCENE")
+		{
+			shape = new Rectangle2d(0.0, 0.0, NORMAL_SCENE_W, NORMAL_SCENE_H)
+		}
+		
 		var body = new AgentBody(id,    
-								 new Circle2d(0.0, 0.0, NORMAL_PERSON_SIZE), // body
+								 shape, // body
 								 1, // max linear speed m/s
 							 	 1, // max linear acceleration (m/s)/s
 								 MathConstants::PI / 4, // max angular speed r/s
@@ -387,9 +413,29 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 		body.type = type 
 		addAgentBody(body, randomPosition, Math::random as double * MathConstants::TWO_PI)
 	}
-	
-	def createPelo(){
+
+	def createPelo() {
 		createBody("PELO")
+	}
+
+	def createFimuGoer() {
+		createBody("FIMUGOER")
+	}
+
+	def createScene() {
+		createBody("SCENE")
+	}
+
+	def createFoodStand() {
+		createBody("FOODSTAND")
+	}
+
+	def createDrinkStand() {
+		createBody("DRINKSTAND")
+	}
+
+	def createToilets() {
+		createBody("TOILETS")
 	}
 
 	protected def randomPosition : Point2d {
@@ -405,6 +451,9 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 			}
 			if(body.shape instanceof Circle2d){
 				(body.shape as Circle2d).center = position
+			}
+			if (body.shape instanceof Rectangle2d) {
+				(body.shape as Rectangle2d).center = position
 			}
 			body.position = position
 			body.angle = direction

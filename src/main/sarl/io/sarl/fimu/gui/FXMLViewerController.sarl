@@ -24,6 +24,7 @@ import javafx.scene.control.Button
 import javafx.scene.paint.Color
 import javafx.util.Duration
 import org.arakhne.afc.math.geometry.d2.d.Circle2d
+import org.arakhne.afc.math.geometry.d2.d.Rectangle2d
 
 class FXMLViewerController implements EventListener {
 
@@ -79,7 +80,7 @@ class FXMLViewerController implements EventListener {
 		val state = this.lastState
 		if(state === null) return;
 		for (o : state.objects) {
-			System.out.println("Object(x: " + o.position.x + ", y: " + o.position.y + ")") 
+//			System.out.println("Object(x: " + o.position.x + ", y: " + o.position.y + ")") 
 			
 			gc.setFill(Color.YELLOW)
 			if(o.shape instanceof Circle2d){ 
@@ -87,7 +88,8 @@ class FXMLViewerController implements EventListener {
 							o.shape.toBoundingBox.width, o.shape.toBoundingBox.height)
 				gc.setFill(Color.WHITE)
 				gc.fillOval(o.position.x,o.position.y,1,1)
-				
+			} else if(o.shape instanceof Rectangle2d){
+				gc.fillRect(o.position.x, o.position.y, o.shape.toBoundingBox.width, o.shape.toBoundingBox.height)	 
 			} else {
 				gc.fillOval(o.position.x - 5, o.position.y - 5, o.shape.toBoundingBox.width, o.shape.toBoundingBox.height)
 			}
