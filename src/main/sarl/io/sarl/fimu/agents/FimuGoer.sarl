@@ -45,7 +45,7 @@ import org.arakhne.afc.math.geometry.d2.d.Vector2d
  * - maybe a bonus depending on the advancement of the project :)
  */
 
-agent FimuGoer /* extends AbstractAnimat */ {
+agent FimuGoer {
 	uses Logging, PhysicEnvironmentCapacity, DefaultContextInteractions
 
 	var seekBehaviour : KinematicSeekBehavior
@@ -338,6 +338,10 @@ agent FimuGoer /* extends AbstractAnimat */ {
 	def doNothing {
 		influenceKinematic(new Vector2d, 0.0)
 	}
+
+	/**
+	 * SUBJECT TO CHANGE TO FIT THE NEEDS OF THIS SPECIFIC TYPE OF AGENT
+	 */
 
 	on PerceptionEvent {
 		// var target = occurrence.perceptions.first

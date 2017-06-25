@@ -68,8 +68,14 @@ agent EnvironmentAgent {
 		//create a bunch of test agents
 		environment.createPelo;
 		environment.createPelo;
-		// Pas sûr du premier arguement
+		environment.createToilets;
+		environment.createToilets;
+		environment.createFoodStand;
+		environment.createDrinkStand;
+		environment.createScene;
+		environment.createScene;
 		
+		// Pas sûr du premier arguement
 		var agentParameters : List<Object> = newArrayList(getDefaultSpace.getSpaceID.ID, this.ID)
 		info(getDefaultSpace.getSpaceID.ID)
 		for (body : environment.agentBodies) {
@@ -81,7 +87,7 @@ agent EnvironmentAgent {
 		//ctrl.draw() 
 		runBehavior
 	}
-	
+		
 //	on StopSimulation {
 //		killMe
 	//	}
