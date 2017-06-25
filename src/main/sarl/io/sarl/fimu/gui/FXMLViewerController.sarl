@@ -97,6 +97,7 @@ class FXMLViewerController implements EventListener {
 		gc.setFill((o as AgentBody).color)
 		var shape = o.shape
 		var bounds = o.shape.toBoundingBox
+		gc.strokeOval(0,0,2,2)
 		if (shape instanceof Circle2d) {
 			//Shift position to top left
 			gc.strokeOval(o.position.x - (bounds.width / 2),
