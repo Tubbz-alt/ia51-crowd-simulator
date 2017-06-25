@@ -67,8 +67,8 @@ agent EnvironmentAgent {
 	on CreateArea {
 		var i = 0
 		//create a bunch of test agents
-		environment.createPelo;
-		environment.createPelo;
+		environment.createFimuGoer;
+		environment.createFimuGoer;
 		environment.createToilets;
 		environment.createToilets;
 		environment.createFoodStand;

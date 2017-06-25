@@ -15,16 +15,17 @@ import io.sarl.lang.core.Event
 import io.sarl.lang.core.EventListener
 import io.sarl.util.OpenEventSpace
 import java.util.UUID
-import javafx.animation.PauseTransition
 import javafx.application.Platform
 import javafx.^event.ActionEvent
 import javafx.fxml.FXML
 import javafx.scene.canvas.Canvas
 import javafx.scene.canvas.GraphicsContext
 import javafx.scene.control.Button
-import javafx.util.Duration
+import javafx.scene.paint.Color
 import org.arakhne.afc.math.geometry.d2.d.Circle2d
 import org.arakhne.afc.math.geometry.d2.d.Rectangle2d
+
+import static extension io.sarl.fimu.environment.Environment.*
 
 class FXMLViewerController implements EventListener {
 
@@ -71,9 +72,9 @@ class FXMLViewerController implements EventListener {
 	/* 
 	 * Draw every positions on main canvas
 	 */
-	public def draw(/*o : Iterable<? extends ISituatedObject>*/) {		
+	public def draw() {		
 		var gc : GraphicsContext = draw_zone.getGraphicsContext2D();
-		var wait : PauseTransition = new PauseTransition(Duration.seconds(0.03)); 
+		//var wait : PauseTransition = new PauseTransition(Duration.seconds(0.03)); 
 		//Uncomment to clear the zone at each step
 		gc.clearRect(0, 0, draw_zone.getWidth(), draw_zone.getHeight());
 		
@@ -81,48 +82,46 @@ class FXMLViewerController implements EventListener {
 		if(state === null) return;
 		for (o : state.objects) {
 //			System.out.println("Object(x: " + o.position.x + ", y: " + o.position.y + ")") 
-			if (o instanceof AgentBody){
-				gc.setFill((o as AgentBody).color)
-			}
-			if(o.shape instanceof Circle2d){ 
-				gc.strokeOval(o.position.x-(o.shape.toBoundingBox.width/2), o.position.y-(o.shape.toBoundingBox.height/2),
-							o.shape.toBoundingBox.width, o.shape.toBoundingBox.height)
-				gc.fillOval(o.position.x,o.position.y,1,1)
-			} else if(o.shape instanceof Rectangle2d){
-				gc.fillRect(o.position.x, o.position.y, o.shape.toBoundingBox.width, o.shape.toBoundingBox.height)	 
-			} else {
-				gc.fillOval(o.position.x - 5, o.position.y - 5, o.shape.toBoundingBox.width, o.shape.toBoundingBox.height)
+			if (o instanceof AgentBody) {
+				drawBody(o,gc)
+				//drawBoundingBox(o,gc)
+				drawPerceptionRadius(o,gc)
 			}
 		}
-		System.out.println("Env(x: "+state.envShape.width+", y: "+state.envShape.height+")")
-		gc.strokeRect(0,0,state.envShape.width,state.envShape.height)
-//		wait.setOnFinished [ e |
-//			try {
-//				gc.clearRect(0, 0, draw_zone.getWidth(), draw_zone.getHeight());
-//				while(o.hasNext){
-//					var t = o.next();
-//					gc.setFill(Color.YELLOW)
-//					gc.fillOval(t.position.x, t.position.y, 10, 10)
-//				}
-//				grid.getRockets().values().stream().filter(rocket|!rocket.getHidden()).forEach(rocket |
-//					{
-//					gc.setFill(rocket.getColor());
-//					gc.fillOval(rocket.getPosition().get(0), rocket.getPosition().get(1), 10, 10);
-//					});
-//
-//				grid.getFire().values().forEach(fire |
-//					{
-//					gc.setFill(fire.getColor());
-//					fire.getPositions().forEach(pos |
-//						{
-//						gc.fillOval(pos.get(0), pos.get(1), 3, 3);
-//						});
-//					});
-//			} catch (exception : Exception) {
-//			}
-//			wait.playFromStart();
-//		];
-//		wait.play();
+		//System.out.println("Env(x: "+state.envShape.width+", y: "+state.envShape.height+")")
+		//Draw environment bounds
+		
+	}
+	
+	def drawBody(o : AgentBody, gc : GraphicsContext) {
+		gc.setFill((o as AgentBody).color)
+		var shape = o.shape
+		var bounds = o.shape.toBoundingBox
+		if (shape instanceof Circle2d) {
+			//Shift position to top left
+			gc.strokeOval(o.position.x - (bounds.width / 2),
+						  o.position.y - (bounds.height / 2),
+						  bounds.width,
+						  bounds.height)
+			//Draw center (we can comment that on and off for ease of debug	
+			gc.fillOval(o.position.x, o.position.y, 1, 1)
+			} else if (o.shape instanceof Rectangle2d) {
+				gc.fillRect(bounds.minX, bounds.minY, bounds.width, bounds.height)
+			} else {
+				//Don't draw weird stuff
+			}
+	}
+	
+	def drawBoundingBox(o : AgentBody, gc : GraphicsContext) {
+		var bounds = o.shape.toBoundingBox
+		gc.setStroke(Color.WHITESMOKE)
+		gc.strokeRect(bounds.minX, bounds.minY, bounds.width, bounds.height)
+	}
+	
+	def drawPerceptionRadius(o : AgentBody, gc : GraphicsContext) {
+		var rad = environment.getPerceptionRadius
+		gc.setStroke(Color.rgb(240, 248, 255, 0.5))
+		gc.strokeOval(o.position.x - rad, o.position.y - rad, rad * 2, rad * 2)
 	}
 
 	/* 
@@ -189,6 +188,9 @@ class FXMLViewerController implements EventListener {
 		if (^event instanceof EnvironmentEvent) {
 			if (this.environment === null) {
 				this.environment = ^event.environment
+				var gc : GraphicsContext = draw_zone.getGraphicsContext2D();
+				gc.strokeRect(0, 0, environment.spatialDataStructure.bounds.width,
+					environment.spatialDataStructure.bounds.height)
 			}
 			this.lastState = this.environment.state
 			draw

@@ -58,6 +58,9 @@ class Environment {
 		this.model.initialize(new Rectangle2d(0.0, 0.0, width, height))
 	}
 	
+	def getPerceptionRadius : double{
+		return PERCEPTION_RADIUS as double
+	}
 	def getTimeManager : TimeManager{
 		return timeManager
 	}

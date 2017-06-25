@@ -80,42 +80,9 @@ agent FimuGoer {
 		// Event trigger before the agent begin to live or to be used.
 		// You should put all the initialization statements in this block of code.
 		this.wanderBehaviour = new KinematicWanderBehavior
+		this.seekBehaviour = new KinematicSeekBehavior
 		// emit(new SimulationAgentReady)
 		info("The agent was started.")
-	}
-
-	on Destroy {
-		// Event trigger when the agent is destroyed from the system.
-		// You should put all the resource releasing statements in this block of code.
-		info("The agent was stopped.")
-	}
-
-	on AgentSpawned {
-		// A new agent has been spawned in our context.
-	}
-
-	on AgentKilled {
-		// A new agent has been killed in our context.
-	}
-
-	on ContextJoined {
-		// Event trigger when an agent of the level joins a shared context.
-		// Sent to a agent of the same level.
-	}
-
-	on ContextLeft {
-		// Event trigger when an agent of the level jleaves a shared context.
-		// Sent to a agent of the same level.
-	}
-
-	on MemberJoined {
-		// Event trigger when an agent joins one of our shared super-holons.
-		// Sent to all members of the considered super-holon.
-	}
-
-	on MemberLeft {
-		// Event trigger when an agent leaves one of our shared super-holons.
-		// Sent to all members of the considered super-holon.
 	}
 
 	/**
@@ -340,15 +307,22 @@ agent FimuGoer {
 	 * SUBJECT TO CHANGE TO FIT THE NEEDS OF THIS SPECIFIC TYPE OF AGENT
 	 */
 
+
+	/* Decide what to do based on what is perceived. In the event :
+	 * - perceptions : any object that is perceived
+	 * - body : this agent's body
+	 */
 	on PerceptionEvent {
-		// var target = occurrence.perceptions.first
+		var target = occurrence.perceptions.first
+		var output : MotionAlgorithmOutput
+		if(target !== null){
+			output = seekBehaviour.run(occurrence.body.position, occurrence.body.currentLinearSpeed, occurrence.body.maxLinearSpeed, target.position)
+		}
 			emitInfluence(
 			this.wanderBehaviour.run(occurrence.body.position, occurrence.body.direction,
 				occurrence.body.currentLinearSpeed, occurrence.body.maxLinearSpeed, occurrence.body.currentAngularSpeed,
 				occurrence.body.maxAngularSpeed)
 		)
-		/* new TypeChangeInfluence("BODY") */
-		// )
 		// For testing purpose...
 		// doNothing
 	}
