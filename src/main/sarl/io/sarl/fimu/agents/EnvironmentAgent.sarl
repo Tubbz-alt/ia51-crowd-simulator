@@ -13,6 +13,7 @@ import io.sarl.fimu.environment.AgentBodyMapper
 import io.sarl.fimu.environment.Environment
 import io.sarl.fimu.environment.Percept
 import io.sarl.fimu.events.CreateArea
+import io.sarl.fimu.events.Exit
 import io.sarl.fimu.events.Freeze
 import io.sarl.fimu.events.InfluenceEvent
 import io.sarl.fimu.events.PerceptionEvent
@@ -76,7 +77,6 @@ agent EnvironmentAgent {
 		environment.createPelo;
 		environment.createPelo;
 		environment.createPelo;
-		// Pas sûr du premier arguement
 		
 		var agentParameters : List<Object> = newArrayList(getDefaultSpace.getSpaceID.ID, this.ID)
 		info(getDefaultSpace.getSpaceID.ID)
@@ -97,8 +97,23 @@ agent EnvironmentAgent {
 	/* 
 	 * Transmit Freeze signal
 	 */
-	on Freeze [!isFromMe(occurrence)] { 
-		innerContext.defaultSpace.emit(occurrence)
+	on Freeze [!isFromMe(occurrence)] {
+		getDefaultSpace.emit(occurrence)
+		this.freeze = occurrence.value
+		if(this.freeze == false){
+			runBehavior
+		}
+	}
+
+	on Exit [!hasMemberAgent] {
+		killMe
+	}
+	/*
+	 * Transmit Exit signal to all inner agent
+	 */
+	on Exit [hasMemberAgent && !exited] {
+		exited = true
+		getDefaultSpace.emit(new Exit)
 	}
 	
 	/*
