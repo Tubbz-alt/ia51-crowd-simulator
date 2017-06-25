@@ -3,13 +3,13 @@
  */
 package io.sarl.fimu.environment
 
-import io.sarl.lang.core.Agent
-import io.sarl.fimu.agents.PeloAgent
-import io.sarl.fimu.agents.FoodStand
 import io.sarl.fimu.agents.DrinkStand
-import io.sarl.fimu.agents.Scene
 import io.sarl.fimu.agents.FimuGoer
+import io.sarl.fimu.agents.FoodStand
+import io.sarl.fimu.agents.PeloAgent
+import io.sarl.fimu.agents.Scene
 import io.sarl.fimu.agents.Toilets
+import io.sarl.lang.core.Agent
 
 /** 
  * @author Léon

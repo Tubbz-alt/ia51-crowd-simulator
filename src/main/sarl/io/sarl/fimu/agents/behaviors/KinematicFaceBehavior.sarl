@@ -1,16 +1,15 @@
 package io.sarl.fimu.agents.behaviors
 
+import io.sarl.fimu.agents.MotionAlgorithmOutput
+import org.arakhne.afc.math.MathUtil
 import org.arakhne.afc.math.geometry.d2.d.Point2d
 import org.arakhne.afc.math.geometry.d2.d.Vector2d
-import io.sarl.fimu.agents.MotionAlgorithmOutput
-import io.sarl.fimu.environment.DynamicType
-import org.arakhne.afc.math.MathUtil
 
 class KinematicFaceAlgorithm {
 
 	def run(position : Point2d, orientation : Vector2d, angularSpeed : double, maxAngular : double,
 		target : Point2d) : MotionAlgorithmOutput {
-		var output = new MotionAlgorithmOutput(DynamicType::KINEMATIC)
+		var output = new MotionAlgorithmOutput()
 
 		var angle = orientation .. (target - position)
 		output.angular = MathUtil::clamp(angle, -maxAngular, maxAngular)

@@ -172,13 +172,10 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 
 			var linearMotion : Vector2d
 			var angularMotion : double
-			if (mi.type === DynamicType.KINEMATIC) {
-				linearMotion = body.computeKinematicTranslation(mi.linearInfluence, this.timeManager)
-				angularMotion = body.computeKinematicRotation(mi.angularInfluence, this.timeManager)
-			} else {
-				linearMotion = body.computeSteeringTranslation(mi.linearInfluence, this.timeManager)
-				angularMotion = body.computeSteeringRotation(mi.angularInfluence, this.timeManager)
-			}
+			
+			linearMotion = body.computeKinematicTranslation(mi.linearInfluence, this.timeManager)
+			angularMotion = body.computeKinematicRotation(mi.angularInfluence, this.timeManager)
+			
 
 			actionTree.addData(new SituatedArtifact(body, linearMotion, angularMotion))
 		}

@@ -13,7 +13,6 @@ import org.arakhne.afc.math.geometry.d2.d.Vector2d
  */
 class MotionInfluence extends Influence {
 
-	val type : DynamicType 
 	val linearInfluence = new Vector2d
 	var angularInfluence : double
 	
@@ -23,9 +22,8 @@ class MotionInfluence extends Influence {
 	 * @param linearInfluence is the linear influence to apply on the object.
 	 * @param angularInfluence is the angular influence to apply on the object.
 	 */
-	new (type : DynamicType, influencedObject : UUID = null, linearInfluence : Vector2d = null, angularInfluence : double = 0) {
+	new (influencedObject : UUID = null, linearInfluence : Vector2d = null, angularInfluence : double = 0) {
 		super(influencedObject)
-		this.type = type;
 		if (linearInfluence !== null) {
 			this.linearInfluence.set(linearInfluence)
 		}
@@ -72,14 +70,6 @@ class MotionInfluence extends Influence {
 	 */
 	def getAngularInfluence : double {
 		this.angularInfluence
-	}
-	
-	/** Replies the type of the influence.
-	 * 
-	 * @return the type of the influence.
-	 */
-	def getType : DynamicType {
-		this.type
 	}
 	
 	override toString : String {

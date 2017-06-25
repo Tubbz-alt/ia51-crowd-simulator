@@ -1,10 +1,9 @@
 package io.sarl.fimu.agents.behaviors
 
-import org.arakhne.afc.math.geometry.d2.d.Vector2d
-import org.arakhne.afc.math.geometry.d2.d.Point2d
-import java.util.Random
 import io.sarl.fimu.agents.MotionAlgorithmOutput
-import io.sarl.fimu.environment.DynamicType
+import java.util.Random
+import org.arakhne.afc.math.geometry.d2.d.Point2d
+import org.arakhne.afc.math.geometry.d2.d.Vector2d
 
 class KinematicWanderBehavior {
 
@@ -12,7 +11,7 @@ class KinematicWanderBehavior {
 
 	def run(position : Point2d, orientation : Vector2d, linearSpeed : double, maxLinear : double,
 		angularSpeed : double, maxAngular : double) : MotionAlgorithmOutput {
-		var output = new MotionAlgorithmOutput(DynamicType::KINEMATIC)
+		var output = new MotionAlgorithmOutput()
 
 		var v = orientation.clone
 		v.length = maxLinear

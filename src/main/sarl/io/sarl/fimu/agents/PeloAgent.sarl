@@ -7,7 +7,6 @@ import io.sarl.core.Logging
 import io.sarl.fimu.agents.actions.PhysicEnvironmentCapacity
 import io.sarl.fimu.agents.actions.PhysicEnvironmentSkill
 import io.sarl.fimu.agents.behaviors.KinematicWanderBehavior
-import io.sarl.fimu.environment.DynamicType
 import io.sarl.fimu.environment.Influence
 import io.sarl.fimu.environment.Percept
 import io.sarl.fimu.events.Exit
@@ -79,14 +78,7 @@ agent PeloAgent {
 	}
 
 	def emitInfluence(output : MotionAlgorithmOutput, influences : Influence*) {
-		if (output !== null) {
-			if (output.getType() === DynamicType::STEERING)
-				influenceSteering(output.linear, output.angular, influences)
-			else
-				influenceKinematic(output.linear, output.angular, influences);
-		} else {
-			influenceSteering(new Vector2d, 0f, influences)
-		}
+		influenceKinematic(output.linear, output.angular, influences);
 	}
 
 	def first(list : List<Percept>) : Percept {

@@ -12,15 +12,12 @@ import io.sarl.core.MemberJoined
 import io.sarl.core.MemberLeft
 import io.sarl.fimu.agents.actions.PhysicEnvironmentCapacity
 import io.sarl.fimu.agents.actions.PhysicEnvironmentSkill
-import io.sarl.core.Initialize
 import io.sarl.fimu.agents.behaviors.KinematicSeekBehavior
 import io.sarl.fimu.agents.behaviors.KinematicWanderBehavior
-import io.sarl.fimu.environment.DynamicType
 import io.sarl.fimu.environment.Influence
 import io.sarl.fimu.environment.Percept
-import java.util.List
 import io.sarl.fimu.events.PerceptionEvent
-import io.sarl.fimu.events.SimulationAgentReady
+import java.util.List
 import java.util.UUID
 import org.arakhne.afc.math.geometry.d2.d.Point2d
 import org.arakhne.afc.math.geometry.d2.d.Vector2d
@@ -358,12 +355,7 @@ agent FimuGoer {
 
 	def emitInfluence(output : MotionAlgorithmOutput, influences : Influence*) {
 		if (output !== null) {
-			if (output.getType() === DynamicType::STEERING)
-				influenceSteering(output.linear, output.angular, influences)
-			else
-				influenceKinematic(output.linear, output.angular, influences);
-		} else {
-			influenceSteering(new Vector2d, 0f, influences)
+			influenceKinematic(output.linear, output.angular, influences);
 		}
 	}
 

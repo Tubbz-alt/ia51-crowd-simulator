@@ -65,18 +65,7 @@ class AgentBody extends AbstractMobileObject {
 	 */
 	def influence(influence : Influence) { 
 		if (influence instanceof MotionInfluence) {
-			if (influence.influencedObject === null || influence.influencedObject == id) {
-				switch (influence.type) {
-					case KINEMATIC: {
-						influenceKinematic(influence.linearInfluence, influence.angularInfluence)
-					}
-					case STEERING: {
-						influenceSteering(influence.linearInfluence, influence.angularInfluence)
-					}
-				}
-			} else {
-				this.otherInfluences += influence
-			}
+			influenceKinematic(influence.linearInfluence, influence.angularInfluence)
 		} else if (influence !== null) {
 			this.otherInfluences += influence
 		}
@@ -97,20 +86,7 @@ class AgentBody extends AbstractMobileObject {
 			}
 		}
 		var ai = MathUtil::clamp(angularInfluence, -this.maxAngularSpeed, this.maxAngularSpeed)
-		this.motionInfluence = new MotionInfluence(DynamicType::KINEMATIC, id, li, ai)
-	}
-
-	def influenceSteering(linearInfluence : Vector2d = null, angularInfluence : double = 0.0) {
-		var li : Vector2d
-		if (linearInfluence !== null) {
-			li = linearInfluence.clone
-			var nSpeed = li.length
-			if (nSpeed > this.maxLinearAcceleration) {
-				li.length = this.maxLinearAcceleration
-			}
-		}
-		var ai = MathUtil::clamp(angularInfluence, -this.maxAngularAcceleration, this.maxAngularAcceleration)
-		this.motionInfluence = new MotionInfluence(DynamicType::STEERING, id, li, ai)
+		this.motionInfluence = new MotionInfluence(id, li, ai)
 	}
 
 	def getPerceivedObjects : List<Percept> {

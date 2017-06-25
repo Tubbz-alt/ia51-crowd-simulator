@@ -2,17 +2,16 @@ package io.sarl.fimu.agents.actions
 
 import io.sarl.core.Behaviors
 import io.sarl.core.DefaultContextInteractions
-import io.sarl.fimu.environment.DynamicType
+import io.sarl.fimu.environment.AddressUUIDScope
 import io.sarl.fimu.environment.Influence
 import io.sarl.fimu.environment.KillInfluence
 import io.sarl.fimu.environment.MotionInfluence
 import io.sarl.fimu.events.InfluenceEvent
 import io.sarl.lang.core.Address
 import io.sarl.util.OpenEventSpace
+import java.lang.reflect.Array
 import java.util.UUID
 import org.arakhne.afc.math.geometry.d2.d.Vector2d
-import java.lang.reflect.Array
-import io.sarl.fimu.environment.AddressUUIDScope
 
 skill PhysicEnvironmentSkill implements PhysicEnvironmentCapacity {
 
@@ -47,19 +46,9 @@ skill PhysicEnvironmentSkill implements PhysicEnvironmentCapacity {
 	def influenceKinematic(linearInfluence : Vector2d = null, angularInfluence : double = 0.0, otherInfluences : Influence*) {
 		var mi : MotionInfluence
 		if (linearInfluence === null) {
-			mi = new MotionInfluence(DynamicType::KINEMATIC, angularInfluence)
+			mi = new MotionInfluence(angularInfluence)
 		} else {
-			mi = new MotionInfluence(DynamicType::KINEMATIC, linearInfluence, angularInfluence)
-		}
-		emitInfluences(mi, otherInfluences)
-	}
-	
-	def influenceSteering(linearInfluence : Vector2d = null, angularInfluence : double = 0.0, otherInfluences : Influence*) {
-		var mi : MotionInfluence
-		if (linearInfluence === null) {
-			mi = new MotionInfluence(DynamicType::STEERING, angularInfluence)
-		} else {
-			mi = new MotionInfluence(DynamicType::STEERING, linearInfluence, angularInfluence)
+			mi = new MotionInfluence(linearInfluence, angularInfluence)
 		}
 		emitInfluences(mi, otherInfluences)
 	}
