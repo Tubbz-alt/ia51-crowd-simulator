@@ -80,13 +80,13 @@ class Percept implements IMobileObject {
 	def compareTo(o : ISituatedObject) : int {
 		if (o instanceof Percept) {
 			if (this.bodyId !== null) {
-				var c = this.bodyId <=> o.ID
+				var c = this.bodyId <=> o.getId
 				if (c != 0) {
 					return c
 				}
 			}
 			if (this.objectId !== null) {
-				return this.objectId <=> o.ID
+				return this.objectId <=> o.getId
 			}
 		}
 		return Integer::MAX_VALUE
@@ -103,7 +103,7 @@ class Percept implements IMobileObject {
 	 * 
 	 * @return the id of the body.
 	 */
-	def getID : UUID {
+	def getId : UUID {
 		this.objectId
 	}
 
@@ -174,13 +174,8 @@ class Percept implements IMobileObject {
 //	override toString : String {
 //		if(this.name.isNullOrEmpty) super.toString() else this.name
 //	}
-	
-	override getId : UUID {
-		throw new UnsupportedOperationException("TODO: auto-generated method stub")
-	}
-	
+		
 	override getType : Serializable {
-		throw new UnsupportedOperationException("TODO: auto-generated method stub")
-	}
-	
+		return type
+	}	
 }

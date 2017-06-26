@@ -65,7 +65,7 @@ agent EnvironmentAgent {
 	 * Create and configure every RocketLauncher
 	 */
 	on CreateArea {
-		//create a bunch of test agents
+		// create a bunch of test agents
 		environment.createFimuGoer
 		environment.createFimuGoer
 		environment.createToilets
@@ -81,7 +81,7 @@ agent EnvironmentAgent {
 		}
 		
 		//This probably has to change
-		//ctrl.draw() 
+		//ctrl.draw()
 		runBehavior
 	}
 		
