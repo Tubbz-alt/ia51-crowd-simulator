@@ -78,7 +78,7 @@ agent EnvironmentAgent {
 		environment.createFimuGoer
 		environment.createFimuGoer
 		environment.createFimuGoer
-//		environment.createFimuGoer
+		// environment.createFimuGoer
 //		environment.createToilets
 //		environment.createDrinkStand
 //		environment.createScene
