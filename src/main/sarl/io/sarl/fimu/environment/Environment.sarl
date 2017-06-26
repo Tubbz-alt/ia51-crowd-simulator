@@ -369,7 +369,7 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 		{
 			shape = new Rectangle2d(0.0, 0.0, NORMAL_TOILET_W, NORMAL_TOILET_H)
 			color = Color.DARKKHAKI
-			position = randomPosition(NORMAL_TOILET_W, NORMAL_TOILET_H)
+			position = new Point2d(width - NORMAL_TOILET_W -15, 10)
 		}
 		else if (type == "DRINKSTAND" || type == "FOODSTAND")
 		{
@@ -381,20 +381,20 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 		{
 			shape = new Rectangle2d(0.0, 0.0, NORMAL_SCENE_W, NORMAL_SCENE_H)
 			color = Color.CADETBLUE
-			position = randomPosition(NORMAL_SCENE_H, NORMAL_SCENE_H)
+			position = new Point2d(200,0)
 		}
-		System.out.println("Type : " + type + " Pos : " + Math.round(position.x) + ", " + Math.round(position.y))
+//		System.out.println("Type : " + type + " Pos : " + Math.round(position.x) + ", " + Math.round(position.y))
 		var body = new AgentBody(id,    
 								 shape, // body
-								 3, // max linear speed m/s
-							 	 3, // max linear acceleration (m/s)/s
+								 2, // max linear speed m/s
+							 	 2, // max linear acceleration (m/s)/s
 								 MathConstants::PI / 4, // max angular speed r/s
 								 MathConstants::PI /10, // max angular acceleration (r/s)/s
 								 new CircleFrustum(id, PERCEPTION_RADIUS),
 								 color);
 		// body.name = MessageFormat::format("Body #{0}", this.agentBodyNumber + 1)
 		body.type = type 
-		addAgentBody(body, randomPosition, Math::random as double * MathConstants::TWO_PI)
+		addAgentBody(body, position, Math::random as double * MathConstants::TWO_PI)
 	}
 
 	def createPelo {
@@ -435,8 +435,8 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 		var collision = false;
 
 		do {
-			tmp_x = Math::random as double * (this.width - 2*width) + width
-			tmp_y = Math::random as double * (this.height - 2*height) + height
+			tmp_x = Math::random as double * (this.width - width)
+			tmp_y = Math::random as double * (this.height - height)
 			do {
 				collision = false;
 				for (body : agentBodies) {
@@ -475,9 +475,7 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 
 	protected synchronized def addAgentBody(body : AgentBody, position : Point2d, direction : double) {
 		if (this.init.get) {
-			synchronized (this.agentBodyList) {
-				this.agentBodyList.put(body.id, body)
-			}
+			
 			if(body.shape instanceof Circle2d){
 				(body.shape as Circle2d).center = position
 			}
@@ -486,6 +484,10 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 			}
 			body.position = position
 			body.angle = direction
+			
+			synchronized (this.agentBodyList) {
+				this.agentBodyList.put(body.id, body)
+			}
 			body.onAgentBodyCreated
 		} else {
 			throw new IllegalStateException("You cannot call this function after the start of the simulation");

@@ -19,7 +19,6 @@ import io.sarl.fimu.events.InfluenceEvent
 import io.sarl.fimu.events.PerceptionEvent
 import io.sarl.fimu.gui.FXMLViewerController
 import io.sarl.fimu.utils.time.TimePercept
-import io.sarl.util.OpenEventSpace
 import io.sarl.util.OpenEventSpaceSpecification
 import java.util.List
 import java.util.UUID
@@ -32,10 +31,8 @@ agent EnvironmentAgent {
 	uses Logging, Lifecycle, DefaultContextInteractions, Behaviors, InnerContextAccess
 
 	var exited = false
-	var maxWidth = 10.0
 	var freeze : boolean
 	var environment : Environment
-	var ^space : OpenEventSpace
 	var influences : int
 	
 	var mapper : AgentBodyMapper
@@ -53,37 +50,31 @@ agent EnvironmentAgent {
 		ctrl.setGUISpace(ispace)
 		ispace.register(asEventListener)
 		environment.addListener(ctrl)
-		
-		//This would draw the agents body if there were any
-		//ctrl.draw()
-		
-		//Tell the simulator agent that we are ready to rock
-		//emit(new SimulationAgentReady)
+	
 	}
 	 
 	 /* 
-	 * Create and configure every RocketLauncher
+	 * Populate the area with some agents 
 	 */
 	on CreateArea {
 		// create a bunch of test agents
-		environment.createFimuGoer
-		environment.createFimuGoer
-		environment.createFimuGoer
-		environment.createFimuGoer
-		environment.createFimuGoer
-		environment.createFimuGoer
-		environment.createFimuGoer
-		environment.createFimuGoer
-		environment.createFimuGoer
-		environment.createFimuGoer
-		environment.createFimuGoer
-		environment.createFimuGoer
-		// environment.createFimuGoer
 //		environment.createToilets
 //		environment.createDrinkStand
-//		environment.createScene
+		environment.createScene
+		environment.createFimuGoer
+		environment.createFimuGoer
+//		environment.createFimuGoer
+//		environment.createFimuGoer
+//		environment.createFimuGoer
+//		environment.createFimuGoer
+//		environment.createFimuGoer
+//		environment.createFimuGoer
+//		environment.createFimuGoer
+//		environment.createFimuGoer
+//		environment.createFimuGoer
+//		environment.createFimuGoer
+
 		
-		// Pas sûr du premier arguement
 		var agentParameters : List<Object> = newArrayList(getDefaultSpace.getSpaceID.ID, this.ID)
 		info(getDefaultSpace.getSpaceID.ID)
 		for (body : environment.agentBodies) {
@@ -91,15 +82,9 @@ agent EnvironmentAgent {
 			spawnInContextWithID(agentType, body.id, getDefaultContext, agentParameters.toArray)
 		}
 		
-		//This probably has to change
-		//ctrl.draw()
 		runBehavior
 	}
 		
-//	on StopSimulation {
-//		killMe
-	//	}
-
 	/* 
 	 * Transmit Freeze signal
 	 */
@@ -129,10 +114,10 @@ agent EnvironmentAgent {
 	 */
 	
 	def runBehavior {
-		System.out.println("Agent bodies number : " + this.environment.agentBodyNumber)
-		System.out.println("Body list size : " + this.environment.agentBodies.size)
-		System.out.println("Tree size : "+this.environment.spatialDataStructure.data.size)
-		System.out.println()
+//		System.out.println("Agent bodies number : " + this.environment.agentBodyNumber)
+//		System.out.println("Body list size : " + this.environment.agentBodies.size)
+//		System.out.println("Tree size : "+this.environment.spatialDataStructure.data.size)
+//		System.out.println()
 		
 		this.freeze = true
 		try {
@@ -153,20 +138,17 @@ agent EnvironmentAgent {
 	 * Notify all the agents that the next step has begun, and tell them what they can perceive 
 	 */
 	def notifyAgents {
-//		var run = false
 		 val timePercept = new TimePercept(this.environment.timeManager.currentTime,
 		 this.environment.timeManager.lastStepDuration)
 		for (body : this.environment.agentBodies) {
-//			run = true
+
 			var ^event = new PerceptionEvent(body.perceivedObjects, new Percept(body), timePercept)
 			^event.source = defaultSpace.getAddress(ID)
 			//Send each agent body a percept event
-			//Maybe inner context ? We'll see later
+
 			getDefaultSpace.emit(^event)[it.UUID == body.id]
 		}
-//		if (!run) {
-//			killMe
-//		}
+
 	}
 
 	on InfluenceEvent [!freeze] {
@@ -180,8 +162,6 @@ agent EnvironmentAgent {
 			this.influences++
 		}
 		this.influences ++
-		//var v = this.influences.incrementAndGet
-		//
 		if (this.influences >= this.environment.getAgentBodyNumber()) {
 			runBehavior
 		}
