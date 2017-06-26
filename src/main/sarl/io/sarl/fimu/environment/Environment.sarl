@@ -82,13 +82,17 @@ class Environment {
 	}
 	
 	def getSpatialDataStructure : SpatialDataStructure<ISituatedObject> { 
-		this.model
+		synchronized(this.model){
+			return this.model
+		}
 	}
 	
 	def getAllObjects : Iterable<ISituatedObject> { 
-		var s = this.model.getData
-//		System.out.println("All objects : "+s.size)
-		s
+		synchronized(this.model){
+			var s = this.model.getData
+	//		System.out.println("All objects : "+s.size)
+			s
+		}
 	}
 	
 def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluences : Collection<Influence>, timeManager : TimeManager) {
@@ -142,7 +146,6 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 			linearMotion = body.computeKinematicTranslation(mi.linearInfluence, this.timeManager)
 			angularMotion = body.computeKinematicRotation(mi.angularInfluence, this.timeManager)
 			
-
 			actionTree.addData(new SituatedArtifact(body, linearMotion, angularMotion))
 			this.hulls = actionTree
 		}
@@ -157,47 +160,57 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 		for (action : actionTree.data) {
 			var obj = action.object
 			if (!action.empty && obj !== null) {
-				var b = this.model.removeData(obj)
-				// TODO assert (b) : "Object cannot be removed from quadtree: " + obj;
-				obj.move(action.linearMotion, action.angularMotion)
-				b = this.model.addData(obj)
+				
+					/* I think that sometimes, objects are not inserted back into the tree */
+					var nb = this.model.data.size
+					var tmp = this.model.clone
+					var tmodel = tmp.get(0)
+					
+					/* Remove object from the tree, make it move and then put it back in the correct child
+				 */
+				 var b : boolean
+					synchronized (this.model){
+						b = this.model.removeData(obj)
+						obj.move(action.linearMotion, action.angularMotion)
+						b = this.model.addData(obj)
+					}
 				// TODO assert (b) : "Object cannot be added in quadtree: " + obj;
 			}
 		}
 	}
 
 	private def detectConflicts(actionTree : QuadTree<SituatedArtifact>) {
-		var iterator = new LeafTreeIterator(actionTree.root)
-		while (iterator.hasNext) {
-			var node = iterator.next
-			var influences : List<SituatedArtifact> = new ArrayList
-			do {
-				influences += node.data
-				node = node.parent
-			} while (node !== null)
-			for (i : 0 ..< influences.size) {
-				var inf1 = influences.get(i)
-				if (!inf1.isEmpty) {
-					var s1 = inf1.shape as MotionHull
-					for (obj : this.allObjects) {
-						if ((!(obj instanceof AgentBody)) && (s1.intersects(obj.shape))) {
-							inf1.clear
-							return
-						}
-					}
-					if (!inf1.empty && i < influences.size - 1) {
-						for (j : (i + 1) ..< influences.size) {
-							var inf2 = influences.get(j)
-							if (!inf2.empty) {
-								if (s1.intersects(inf2.shape)) {
-									inf2.clear
-								}
-							}
-						}
-					}
-				}
-			}
-		}
+//		var iterator = new LeafTreeIterator(actionTree.root)
+//		while (iterator.hasNext) {
+//			var node = iterator.next
+//			var influences : List<SituatedArtifact> = new ArrayList
+//			do {
+//				influences += node.data
+//				node = node.parent
+//			} while (node !== null)
+//			for (i : 0 ..< influences.size) {
+//				var inf1 = influences.get(i)
+//				if (!inf1.isEmpty) {
+//					var s1 = inf1.shape as MotionHull
+//					for (obj : this.allObjects) {
+//						if ((!(obj instanceof AgentBody)) && (s1.intersects(obj.shape))) {
+//							inf1.clear
+//							return
+//						}
+//					}
+//					if (!inf1.empty && i < influences.size - 1) {
+//						for (j : (i + 1) ..< influences.size) {
+//							var inf2 = influences.get(j)
+//							if (!inf2.empty) {
+//								if (s1.intersects(inf2.shape)) {
+//									inf2.clear
+//								}
+//							}
+//						}
+//					}
+//				}
+//			}
+//		}
 	}
 	/* Detect the conflicts between all the motion influences
 	 * The broad detection part should have already been done. 
@@ -211,8 +224,10 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 			var node = iterator.next
 			
 			var influences = new ArrayList(node.data)
+			if(influences.size == 0 ) break
+			 
 			var inf1 = influences.get(0)
-			var shape1 = inf1.shape.toBoundingBox
+			var shape1 = inf1.shape.bounds
 			var inf2 : SituatedArtifact
 			if(influences.size()>1){
 				inf2 = influences.get(1)
@@ -235,7 +250,7 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 			
 			/* If none of the influences have been cleared at the last step */
 			if (!inf1.empty && inf2 !== null && !inf2.empty) {
-				if (shape1.intersects(inf2.shape.toBoundingBox)) {
+				if (shape1.intersects(inf2.shape.bounds)) {
 					inf2.clear
 				}
 			}
@@ -333,22 +348,25 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 		var frustum = ^agent.frustum
 		if (frustum !== null) {
 			var frustumShape = frustum.toShape(^agent.position, ^agent.direction)
-			var dataIterator = this.model.dataIterator(frustumShape)
-			var filteringIterator = frustum.filter(dataIterator)
-			while (filteringIterator.hasNext) {
-				var obj = filteringIterator.next
-				percepts += new Percept(obj) 
+			synchronized(this.model){
+				var dataIterator = this.model.dataIterator(frustumShape)
+				var filteringIterator = frustum.filter(dataIterator)
+				while (filteringIterator.hasNext) {
+					var obj = filteringIterator.next
+					percepts += new Percept(obj)
+				}
 			}
+			
 		}
 		return percepts
 	}
 
 	def onAgentBodyCreated(body : AgentBody) {
-		this.model.addData(body)
+			this.model.addData(body)
 	}
 
 	def onAgentBodyDestroyed(body : AgentBody) {
-		this.model.removeData(body)
+			this.model.removeData(body)
 	}
 	
 	protected final def computeSteeringTranslation(obj : IMobileObject, move : Vector2d, clock : TimeManager) : Vector2d {

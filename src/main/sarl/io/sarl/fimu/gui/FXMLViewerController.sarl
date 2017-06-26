@@ -8,6 +8,7 @@ import io.sarl.fimu.environment.AgentBody
 import io.sarl.fimu.environment.Environment
 import io.sarl.fimu.environment.IMobileObject
 import io.sarl.fimu.environment.ISituatedObject
+import io.sarl.fimu.environment.MotionHull
 import io.sarl.fimu.environment.SituatedArtifact
 import io.sarl.fimu.environment.WorldModelState
 import io.sarl.fimu.events.CreateArea
@@ -30,7 +31,10 @@ import javafx.scene.paint.Color
 import javafx.scene.shape.Circle
 import javafx.scene.shape.Rectangle
 import javafx.scene.shape.Shape
+import javafx.scene.transform.Rotate
+import org.arakhne.afc.math.MathUtil
 import org.arakhne.afc.math.geometry.d2.d.Circle2d
+import org.arakhne.afc.math.geometry.d2.d.OrientedRectangle2d
 import org.arakhne.afc.math.geometry.d2.d.Rectangle2d
 
 class FXMLViewerController implements EventListener {
@@ -42,7 +46,11 @@ class FXMLViewerController implements EventListener {
 	private var areaCreated : boolean = false;
 	var lastState : WorldModelState
 	var environment : Environment
+	
 	var drawables : HashMap<UUID,Shape> = new HashMap
+	var drawablePerceptionRadiuses : HashMap<UUID, Shape> = new HashMap
+	var drawableHulls : ArrayList<Shape> = new ArrayList
+	var perceptionRadius : double
 
 	@FXML
 	private var draw_zone : Pane; 
@@ -133,7 +141,7 @@ class FXMLViewerController implements EventListener {
 	def drawHull(h : SituatedArtifact, gc : GraphicsContext) {
 		var bounds = h.shape.getBounds
 		gc.setStroke(Color.BLUEVIOLET)
-		gc.strokeRect(bounds.minX, bounds.minY, bounds.width, bounds.height)
+		gc.strokeRect(bounds.firstAxisX, bounds.firstAxisY, bounds.firstAxis.length, bounds.secondAxis.length)
 	}
 	
 	def drawBoundingBox(o : AgentBody, gc : GraphicsContext) {
@@ -219,15 +227,35 @@ class FXMLViewerController implements EventListener {
 		}
 		shape
 	}
+	
+	def getPerceptionRadiusShapeFromObject(o : AgentBody) : Shape {	
+		var shape = new Circle(o.position.x, o.position.y, this.perceptionRadius)
+		shape.setStroke(Color.rgb(240, 248, 255, 0.5))
+		shape.setFill(null)
+		shape
+	}
 
+	def getShapeFromHull(o : SituatedArtifact) : Shape {
+		var bounds = o.shape.bounds
+		var shape : Shape
+		if (o.shape instanceof MotionHull) {
+			 
+			shape = bounds.toRectangle
+			shape.setStroke(Color.BLUEVIOLET)
+			shape.setFill(null)
+			//shape.getTransforms().add(new Rotate(Math.toDegrees(o.angularMotion)))
+		}
+		shape
+	}
+	
 	private def moveTo(shape : Shape, o : ISituatedObject) {
-		if (o.shape instanceof Circle2d) {
+		if (shape instanceof Circle) {
 			var s = shape as Circle
 			s.translateX = o.position.x - s.centerX
 			s.translateY = o.position.y - s.centerY
 			s.rotate = Math.toDegrees((o as IMobileObject).angle)
 
-		} else if (o.shape instanceof Rectangle2d) {
+		} else if (shape instanceof Rectangle) {
 			var rshape = o.shape as Rectangle2d
 			var s = shape as Rectangle
 			s.translateX = o.position.x - rshape.width
@@ -235,37 +263,76 @@ class FXMLViewerController implements EventListener {
 		}
 	}
 	
-	/* 
-	 * Needed for implementing EventListener
-	 */
-	 	public override receiveEvent(^event : Event) {
+	private def toRectangle(rec : OrientedRectangle2d) {
+		var vec1 = rec.firstAxis
+		vec1.length = rec.firstAxisExtent
+		var x = rec.centerX + vec1.x
+		var y = rec.centerY + vec1.y
+		
+		var d = rec.secondAxis
+		d.length = rec.secondAxisExtent
+
+		var x1 = rec.centerX + d.x
+		var y1 = rec.centerY + d.y
+		var x2 = rec.centerX - d.x
+		var y2 = rec.centerY - d.y
+		var x3 = x + d.x
+		var y3 = y + d.y
+		var x4 = x - d.x
+		var y4 = y - d.y
+
+		new Rectangle(MathUtil::min(x1, x2, x3, x4), MathUtil::min(y1, y2, y3, y4),
+			MathUtil::max(rec.firstAxisExtent, rec.secondAxisExtent),
+			MathUtil::min(rec.firstAxisExtent, rec.secondAxisExtent))
+	}
+	
+		/* 
+		 * Handle events
+		 */
+	public override receiveEvent(^event : Event) {
 		if (^event instanceof EnvironmentEvent) {
 			/* Probably not the best way ! */
 			if (this.environment === null) {
 				this.environment = ^event.environment	
 			}
 			this.lastState = this.environment.state
-			
+			this.perceptionRadius = ^event.perceptionRadius
+
+			//System.out.println("Number of objects : " + ^event.objects.size())
 			for(o : ^event.objects){
 				if(!drawables.containsKey(o.id)){
 					var shape = getShapeFromObject(o)
-					drawables.put(o.id,shape)
+					drawables.put(o.id, shape)
+					if (o instanceof AgentBody) {
+						var percep = getPerceptionRadiusShapeFromObject(o)
+						drawablePerceptionRadiuses.put(o.id, percep)
+					}
 				}else{
 					var shape = drawables.get(o.id)
 					shape.moveTo(o)
+					if (o instanceof AgentBody) {
+//						var s = o.shape as Circle2d
+//						System.out.println("Agent : Center(x : " + s.centerX + " , y : " + s.centerY + ")")
+						
+						var percep = drawablePerceptionRadiuses.get(o.id)
+						percep.moveTo(o)
+					}
 				}
 			}
+			this.drawableHulls.clear
 			if(^event.hulls != null){
 				for(o : ^event.hulls){
-					
+					this.drawableHulls.add(getShapeFromHull(o))
+//					System.out.println("Hull : Center(x : "+o.shape.bounds.centerX+" , y : "+o.shape.bounds.centerY+")")
 				}
 			}
-			 Platform.runLater(new Runnable {
-                 @Override public def run() {
-                     draw_zone.children.all = new ArrayList(drawables.values) 
-                 }
-             });
-			
+			Platform.runLater(new Runnable {
+                @Override public def run() {
+                    draw_zone.children.all = new ArrayList(drawables.values) 
+                    draw_zone.children.addAll(new ArrayList(drawablePerceptionRadiuses.values))
+                    //draw_zone.children.addAll(drawableHulls)
+                }
+            });
 		}
 	}
 }

@@ -26,7 +26,8 @@ class SituatedArtifact implements IShapedObject, Comparable<SituatedArtifact> {
 		this.object = if(object instanceof IMobileObject) object as IMobileObject else null
 		this.linearMotion = linearMotion
 		this.angularMotion = angularMotion
-		this.shape = new MotionHull(object.position, linearMotion, object.shape.toBoundingBox.firstAxisExtent)
+		/* Create a rectangle corresponding to the trajectory of the object if it moves this way. We assume it's a circle and has a constant width */
+		this.shape = new MotionHull(object.position, linearMotion, object.shape.toBoundingBox.width)
 	}
 
 	override equals(obj : Object) : boolean {

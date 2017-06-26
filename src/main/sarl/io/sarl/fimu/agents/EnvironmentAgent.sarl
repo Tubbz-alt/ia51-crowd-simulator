@@ -68,9 +68,20 @@ agent EnvironmentAgent {
 		//create a bunch of test agents
 		environment.createFimuGoer
 		environment.createFimuGoer
-		environment.createToilets
-		environment.createDrinkStand
-		environment.createScene
+		environment.createFimuGoer
+		environment.createFimuGoer
+		environment.createFimuGoer
+		environment.createFimuGoer
+		environment.createFimuGoer
+		environment.createFimuGoer
+		environment.createFimuGoer
+		environment.createFimuGoer
+		environment.createFimuGoer
+		environment.createFimuGoer
+//		environment.createFimuGoer
+//		environment.createToilets
+//		environment.createDrinkStand
+//		environment.createScene
 		
 		// Pas sûr du premier arguement
 		var agentParameters : List<Object> = newArrayList(getDefaultSpace.getSpaceID.ID, this.ID)
@@ -118,6 +129,11 @@ agent EnvironmentAgent {
 	 */
 	
 	def runBehavior {
+		System.out.println("Agent bodies number : " + this.environment.agentBodyNumber)
+		System.out.println("Body list size : " + this.environment.agentBodies.size)
+		System.out.println("Tree size : "+this.environment.spatialDataStructure.data.size)
+		System.out.println()
+		
 		this.freeze = true
 		try {
 			this.influences = 0
