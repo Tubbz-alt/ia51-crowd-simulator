@@ -267,6 +267,7 @@ agent FimuGoer {
 		{
 			var type = target.type as String
 			var output : MotionAlgorithmOutput
+			var influenceEmitted = false
 			
 			switch(type)
 			{
@@ -275,18 +276,21 @@ agent FimuGoer {
 					{
 						output = seekBehaviour.run(occurrence.body.position, occurrence.body.currentLinearSpeed,
 							occurrence.body.maxLinearSpeed, target.position)
+						influenceEmitted = true
 					}
 				case "DRINKSTAND":
 					if ((currentNeed == Need.WATER || mayBeNeeded.contains(Need.WATER)) && !inhibitSecondaryNeeds)
 					{
 						output = seekBehaviour.run(occurrence.body.position, occurrence.body.currentLinearSpeed,
 							occurrence.body.maxLinearSpeed, target.position)
+						influenceEmitted = true
 					}
 				case "TOILETS":
 					if ((currentNeed == Need.TOILETS || mayBeNeeded.contains(Need.TOILETS)) && !inhibitSecondaryNeeds)
 					{
 						output = seekBehaviour.run(occurrence.body.position, occurrence.body.currentLinearSpeed,
 							occurrence.body.maxLinearSpeed, target.position)
+						influenceEmitted = true
 					}
 				case "SCENE":
 					if ((currentNeed == Need.CONCERT || mayBeNeeded.contains(Need.CONCERT)) && !inhibitSecondaryNeeds)
@@ -294,19 +298,46 @@ agent FimuGoer {
 						//TODO: check whether this scene plays something the agent likes
 						output = seekBehaviour.run(occurrence.body.position, occurrence.body.currentLinearSpeed,
 							occurrence.body.maxLinearSpeed, target.position)
+						influenceEmitted = true
 					}
 				case "FIMUGOER":
 					if ((currentNeed == Need.TALK || mayBeNeeded.contains(Need.TALK)) && !inhibitSecondaryNeeds)
 					{
 						output = seekBehaviour.run(occurrence.body.position, occurrence.body.currentLinearSpeed,
 							occurrence.body.maxLinearSpeed, target.position)
-					}
+						influenceEmitted = true
+					}				
 				// There is no default case, because the agent acts 50% based on what it perceives, 50% based on what it needs
 				// Needs are re-analyzed each time this handler runs
 				// It will always have something to do, and if it falls through all of previous cases, it will stick to its previous target
 			}
+			
+			if (!influenceEmitted)
+			{
+				output = this.wanderBehaviour.run(
+					occurrence.body.position,
+					occurrence.body.direction,
+					occurrence.body.currentLinearSpeed,
+					occurrence.body.maxLinearSpeed,
+					occurrence.body.currentAngularSpeed,
+					occurrence.body.maxAngularSpeed
+				)
+			}
+			emitInfluence(output)
 			analyzeNeeds
 		}
+		else
+		{
+			emitInfluence(this.wanderBehaviour.run(
+				occurrence.body.position,
+				occurrence.body.direction,
+				occurrence.body.currentLinearSpeed,
+				occurrence.body.maxLinearSpeed,
+				occurrence.body.currentAngularSpeed,
+				occurrence.body.maxAngularSpeed
+			))
+		}
+		
 	}
 
 	def emitInfluence(output : MotionAlgorithmOutput, influences : Influence*) {
@@ -333,15 +364,7 @@ agent FimuGoer {
 //		} else {
 //			doNothing
 //			// // run the wander behaviour
-//			// this.wanderBehaviour.run(
-//			// occurrence.body.position,
-//			// occurrence.body.direction,
-//			// occurrence.body.currentLinearSpeed,
-//			// occurrence.body.maxLinear,
-//			// occurrence.body.currentAngularSpeed,
-//			// occurrence.body.maxAngular
-//			// ).emitInfluence
-//		}
-//	}
+/*	}
+//	} */
 
 }

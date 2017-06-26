@@ -89,7 +89,7 @@ agent Scene {
 	}
 
 	def emitInfluence(output : MotionAlgorithmOutput, influences : Influence*) {
-
+		emit(new InfluenceEvent)
 	}
 
 	def first(list : List<Percept>) : Percept {
