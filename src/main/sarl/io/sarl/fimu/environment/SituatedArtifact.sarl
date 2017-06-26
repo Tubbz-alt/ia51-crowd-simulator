@@ -4,7 +4,6 @@
 package io.sarl.fimu.environment
 
 import java.util.Objects
-import org.arakhne.afc.math.geometry.d2.d.Shape2d
 import org.arakhne.afc.math.geometry.d2.d.Vector2d
 
 /** 
@@ -89,8 +88,8 @@ class SituatedArtifact implements IShapedObject, Comparable<SituatedArtifact> {
 		this.angularMotion
 	}
 
-	override getShape : Shape2d<?> {
-		this.shape as Shape2d<?>
+	def getShape : MotionHull {
+		this.shape
 	}
 
 	override toString : String {

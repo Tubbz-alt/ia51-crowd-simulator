@@ -50,8 +50,8 @@ abstract class AbstractArraySpatialTreeNode<N extends AbstractArraySpatialTreeNo
 
 	override addData(data : D) : boolean {
 		if (this.leaf) {
-			//Static beurk beurk
-			var maxObjectsPerNode = 1
+			// Static beurk beurk
+			var maxObjectsPerNode = this.tree.nodeFactory.maxDataCountPerNode
 			if (this.dataCount >= maxObjectsPerNode) {
 				// Split the node and move all the objects into the children
 				createChildren

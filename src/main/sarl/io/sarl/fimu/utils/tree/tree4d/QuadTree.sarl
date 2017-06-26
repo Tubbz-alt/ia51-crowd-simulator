@@ -59,7 +59,7 @@ class QuadTree<D extends IShapedObject> extends AbstractSpatialTree<QuadTreeNode
 		}
 		
 		override getMaxDataCountPerNode : int {
-			1
+			2
 		}
 	
 		override setTree(t : SpatialTree) {

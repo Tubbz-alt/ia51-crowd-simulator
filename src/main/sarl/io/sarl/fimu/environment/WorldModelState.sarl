@@ -20,12 +20,13 @@
  */
 package io.sarl.fimu.environment
 
+import io.sarl.fimu.utils.tree.tree4d.QuadTree
 import java.util.ArrayList
 import java.util.List
 import org.arakhne.afc.math.geometry.d2.d.Rectangle2d
 
 /**
- * State of the world model.  
+ * State of the world model.
  * 
  * @author St&eacute;phane GALLAND &lt;stephane.galland@utbm.fr&gt;
  * @version $Name$ $Revision$ $Date$
@@ -34,6 +35,7 @@ class WorldModelState {
 
 	val objects : List<ISituatedObject>
 	public val envShape : Rectangle2d
+	public var hulls : Iterable<SituatedArtifact>
 	
 //	val dataStructure : SpatialDataStructure<ISituatedObject>
 	
@@ -46,7 +48,8 @@ class WorldModelState {
 			this.objects += o.clone
 		}
 		
-		this.envShape = environment.spatialDataStructure.bounds;
+		this.envShape = environment.spatialDataStructure.bounds
+		this.hulls = environment.hulls
 //		
 //		var array : byte[]
 //		var baos = new ByteArrayOutputStream

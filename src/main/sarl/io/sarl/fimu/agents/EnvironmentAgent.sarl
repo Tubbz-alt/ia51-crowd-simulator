@@ -42,7 +42,7 @@ agent EnvironmentAgent {
 	var ctrl : FXMLViewerController
 	
 	
-	on Initialize { 
+	on Initialize {
 
 		this.ctrl = occurrence.parameters.get(0) as FXMLViewerController
 		this.environment = occurrence.parameters.get(1) as Environment
@@ -65,16 +65,12 @@ agent EnvironmentAgent {
 	 * Create and configure every RocketLauncher
 	 */
 	on CreateArea {
-		var i = 0
 		//create a bunch of test agents
-		environment.createFimuGoer;
-		environment.createFimuGoer;
-		environment.createToilets;
-		environment.createToilets;
-		environment.createFoodStand;
-		environment.createDrinkStand;
-		environment.createScene;
-		environment.createScene;
+		environment.createFimuGoer
+		environment.createFimuGoer
+		environment.createToilets
+		environment.createDrinkStand
+		environment.createScene
 		
 		// Pas sûr du premier arguement
 		var agentParameters : List<Object> = newArrayList(getDefaultSpace.getSpaceID.ID, this.ID)

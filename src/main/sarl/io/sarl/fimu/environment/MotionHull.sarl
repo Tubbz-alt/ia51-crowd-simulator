@@ -46,10 +46,8 @@ import org.arakhne.afc.math.geometry.d2.d.Shape2d
 import org.arakhne.afc.math.geometry.d2.d.Tuple2d
 import org.arakhne.afc.math.geometry.d2.d.Vector2d
 
-/** 2D Path with doubleing-point values.
- *
- * @author St&eacute;phane GALLAND &lt;stephane.galland@utbm.fr&gt;
- * @version $Name$ $Revision$ $Date$
+/*
+ * Motion hulls wrap actions and represent "future" position 
  */
 class MotionHull extends AbstractShape2d<MotionHull> {
 
@@ -109,24 +107,24 @@ class MotionHull extends AbstractShape2d<MotionHull> {
 	 */
 	def intersects(s : Shape2d<?>) : boolean {
 		if (s instanceof MotionHull) {
-//			var end = this.start + this.direction
-//			var end2 = (s as MotionHull).start + (s as MotionHull).direction
-////			var d = new Segment2d(this.start, end).com(new Segment2d(s.start,end2))
-//			var d = Segment2afp.calculatesDistanceSquaredSegmentSegment(this.start.x,this.start.y, end.x,end.y, (s as MotionHull).start.x,(s as MotionHull).start.y, end2.x,end2.y)
-//			return d < (this.size + (s as MotionHull).size)
-			return getBounds.intersects(s.getBounds)
+			var end = this.start + this.direction
+			var end2 = (s as MotionHull).start + (s as MotionHull).direction
+//			var d = MathUtil::distanceSegmentToSegment(this.start, end, s.start, end2)
+			var d = Segment2afp.calculatesDistanceSquaredSegmentSegment(this.start.x,this.start.y, end.x,end.y, (s as MotionHull).start.x,(s as MotionHull).start.y, end2.x,end2.y)
+			return d < (this.size + (s as MotionHull).size)
+//			return getBounds.intersects(s.getBounds)
 		}
 		if (s instanceof Rectangle2d) {
-//			var end = this.start + this.direction
-//			var pa = new Point2d(s.minX, s.maxY)
-//			var pb = new Point2d(s.maxX, s.minY)
-//			var d1 = Segment2afp.calculatesDistanceSquaredSegmentSegment(s.minX, s.minY, pa.x, pa.y, this.start.x, this.start.y, end.x, end.y)
-//			var d2 = Segment2afp.calculatesDistanceSquaredSegmentSegment(pa.x, pa.y, s.maxX, s.maxY, this.start.x, this.start.y, end.x, end.y)
-//			var d3 = Segment2afp.calculatesDistanceSquaredSegmentSegment(s.maxX, s.maxY, pb.x, pb.y, this.start.x, this.start.y, end.x, end.y)
-//			var d4 = Segment2afp.calculatesDistanceSquaredSegmentSegment(pb.x, pb.y, s.minX, s.minY, this.start.x, this.start.y, end.x, end.y)
-//			var d = MathUtil::min(d1, d2, d3, d4)
-//			return d < this.size
-			return this.getBounds.intersects(s as Rectangle2d)
+			var end = this.start + this.direction
+			var pa = new Point2d(s.minX, s.maxY)
+			var pb = new Point2d(s.maxX, s.minY)
+			var d1 = Segment2afp.calculatesDistanceSquaredSegmentSegment(s.minX, s.minY, pa.x, pa.y, this.start.x, this.start.y, end.x, end.y)
+			var d2 = Segment2afp.calculatesDistanceSquaredSegmentSegment(pa.x, pa.y, s.maxX, s.maxY, this.start.x, this.start.y, end.x, end.y)
+			var d3 = Segment2afp.calculatesDistanceSquaredSegmentSegment(s.maxX, s.maxY, pb.x, pb.y, this.start.x, this.start.y, end.x, end.y)
+			var d4 = Segment2afp.calculatesDistanceSquaredSegmentSegment(pb.x, pb.y, s.minX, s.minY, this.start.x, this.start.y, end.x, end.y)
+			var d = MathUtil::min(d1, d2, d3, d4)
+			return d < this.size
+//			return this.getBounds.intersects(s as Rectangle2d)
 		}
 		if (s instanceof Circle2d) {
 			var center = s.center
@@ -315,7 +313,12 @@ class MotionHull extends AbstractShape2d<MotionHull> {
 	}
 	
 	override toBoundingBox(box : Rectangle2d) {
-		
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+
+	}
+	
+	def toBoundingBox : Rectangle2d {
+		getBounds
 	}
 	
 }

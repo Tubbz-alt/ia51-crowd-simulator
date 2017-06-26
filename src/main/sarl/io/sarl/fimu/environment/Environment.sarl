@@ -45,6 +45,7 @@ class Environment {
 	val agentBodyList : Map<UUID, AgentBody> = new TreeMap
 	val width : double
 	val height : double
+	var hulls : QuadTree<SituatedArtifact>
 	
 	val init = new AtomicBoolean(true)
 	var listener : EventListener
@@ -58,6 +59,9 @@ class Environment {
 		this.model.initialize(new Rectangle2d(0.0, 0.0, width, height))
 	}
 	
+	def getHulls : Iterable<SituatedArtifact>{
+		this.hulls?.data
+	}
 	def getPerceptionRadius : double{
 		return PERCEPTION_RADIUS as double
 	}
@@ -87,51 +91,10 @@ class Environment {
 		s
 	}
 	
-//	def applyInfluences(motionInfluences : Collection<MotionInfluence>) {
-//		System.out.println("Apply influences")
-//		
-//		var influenceList = new ArrayList(motionInfluences)
-//		var actions = new ArrayList<AnimatAction>(influenceList.size)
-//		
-//		for (index1 : 0 ..< influenceList.size) {
-//			var inf1 = influenceList.get(index1)
-//			var body1 = getAgentBody(inf1.emitter)
-//			if (body1 !== null) {
-//				var move : Vector2d
-//				var rotation : double
-//				if (inf1.type === DynamicType::STEERING) {
-//					move = body1.computeSteeringTranslation(inf1.linearInfluence/*, timeManager*/)
-//					rotation = body1.computeSteeringRotation(inf1.angularInfluence/*, timeManager*/)
-//				} else {
-//					move = body1.computeKinematicTranslation(inf1.linearInfluence/* , timeManager*/)
-//					rotation = body1.computeKinematicRotation(inf1.angularInfluence/* , timeManager*/)
-//				}
-//
-//				var body1Bounds = body1.shape
-//
-//				// Trivial collision detection
-//				//trivialCollisionDetection(index1, influenceList, body1Bounds, move)
-//
-//				actions += new AnimatAction(body1, move, rotation)
-//
-//			}
-//		}
-
-		// Apply the actions
-//		for (action : actions) {
-//			var body = action.objectToMove
-//			if (body !== null) {
-//				body.move(action.translation, action.rotation)
-//			}
-//		}
-//
-	//	}
 def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluences : Collection<Influence>, timeManager : TimeManager) {
 		var actionTree : QuadTree<SituatedArtifact> = new QuadTree
-//		var root : QuadTreeNode<SituatedArtifact> = new QuadTreeNode(new Rectangle2d(0.0, 0.0, this.width, this.height))
-//		actionTree.setRoot(root)
 		actionTree.initialize(new Rectangle2d(0.0, 0.0, this.width, this.height))
-		//
+
 		// Consider other influences
 		for (influence : otherInfluences) {
 //			if (influence instanceof RemoveInfluence) {
@@ -164,7 +127,7 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 //				}
 //				stateChanged
 			}
-		//
+		
 		// Put the influences in a spatial tree
 		for (mi : motionInfluences) {
 			var id = mi.influencedObject
@@ -181,11 +144,13 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 			
 
 			actionTree.addData(new SituatedArtifact(body, linearMotion, angularMotion))
+			this.hulls = actionTree
 		}
 
 		//
 		// Detect conflicts
-		actionTree.detectConflicts
+		this.hulls = actionTree
+		actionTree.detectConflictsSAT
 
 		//
 		// Apply Actions
@@ -234,6 +199,48 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 			}
 		}
 	}
+	/* Detect the conflicts between all the motion influences
+	 * The broad detection part should have already been done. 
+	 * SAT stands for Separation Axis Theorem
+	 * @param actionTree : contains all the actions, separated two by two
+	 */
+	private def detectConflictsSAT(actionTree : QuadTree<SituatedArtifact>){
+		var iterator = actionTree.iterator
+		/* Loop over actions two by two*/
+		while(iterator.hasNext){
+			var node = iterator.next
+			
+			var influences = new ArrayList(node.data)
+			var inf1 = influences.get(0)
+			var shape1 = inf1.shape.toBoundingBox
+			var inf2 : SituatedArtifact
+			if(influences.size()>1){
+				inf2 = influences.get(1)
+			}
+						
+			/* Make sure we are not overlapping with any object that isn't an agent body (we'll check those later) */
+			for (obj : this.allObjects) {
+				if (! (obj instanceof AgentBody)) {
+					var bounds = obj.shape.toBoundingBox
+					if (!inf1.empty && shape1.intersects(bounds)){
+						inf1.clear
+					}
+					if(inf2 !== null){
+						if (!inf2.empty && inf2.shape.toBoundingBox.intersects(bounds)) {
+							inf2.clear
+						}	
+					}
+				}
+			}
+			
+			/* If none of the influences have been cleared at the last step */
+			if (!inf1.empty && inf2 !== null && !inf2.empty) {
+				if (shape1.intersects(inf2.shape.toBoundingBox)) {
+					inf2.clear
+				}
+			}
+		}
+	}
 	
 	/* 
 	 * Notifies listeners about changes in the environment.
@@ -249,7 +256,7 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 	}
 	
 	def runBehavior {
-		System.out.println("Running environment CLASS behavior")
+//		System.out.println("Running environment CLASS behavior")
 		if (this.init.getAndSet(false)) {
 			fireEnvironmentChange
 		}
@@ -409,8 +416,8 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 		
 		var body = new AgentBody(id,    
 								 shape, // body
-								 1, // max linear speed m/s
-							 	 1, // max linear acceleration (m/s)/s
+								 3, // max linear speed m/s
+							 	 3, // max linear acceleration (m/s)/s
 								 MathConstants::PI / 4, // max angular speed r/s
 								 MathConstants::PI /10, // max angular acceleration (r/s)/s
 								 new CircleFrustum(id, PERCEPTION_RADIUS),
@@ -420,27 +427,27 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 		addAgentBody(body, randomPosition, Math::random as double * MathConstants::TWO_PI)
 	}
 
-	def createPelo() {
+	def createPelo {
 		createBody("PELO")
 	}
 
-	def createFimuGoer() {
+	def createFimuGoer {
 		createBody("FIMUGOER")
 	}
 
-	def createScene() {
+	def createScene {
 		createBody("SCENE")
 	}
 
-	def createFoodStand() {
+	def createFoodStand {
 		createBody("FOODSTAND")
 	}
 
-	def createDrinkStand() {
+	def createDrinkStand {
 		createBody("DRINKSTAND")
 	}
 
-	def createToilets() {
+	def createToilets {
 		createBody("TOILETS")
 	}
 

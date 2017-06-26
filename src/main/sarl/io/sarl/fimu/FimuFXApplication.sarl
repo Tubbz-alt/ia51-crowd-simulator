@@ -17,6 +17,7 @@ class FimuFXApplication extends Application {
 	private val bundle : ResourceBundle = ResourceBundle.getBundle(
 		FimuFXApplication.getPackage.name.replaceAll("\\.", "/") + "/" + FimuFXApplication.simpleName);
 
+	/* Lance l'UI - Les fonctions associées aux boutons sont trouvables dans gui/FXMLViewerController */
 	@Override
 	public def start(stage : Stage) throws Exception {
 		var location : URL = getClass().getResource("FimuFXApplication.fxml");
