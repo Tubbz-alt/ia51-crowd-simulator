@@ -133,9 +133,11 @@ event EnvironmentEvent {
 	val environment : Environment
 	var objects : Iterable<ISituatedObject>
 	var hulls : Iterable<SituatedArtifact>
+	var perceptionRadius : double
 	new(e : Environment){
 		environment = e
 		objects = e.allObjects
 		hulls = e.hulls
+		perceptionRadius = e.perceptionRadius
 	}
 }

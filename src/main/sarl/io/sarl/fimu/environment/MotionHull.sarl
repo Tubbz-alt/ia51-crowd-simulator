@@ -21,7 +21,6 @@
 package io.sarl.fimu.environment
 
 import com.google.common.base.Objects
-import java.awt.geom.PathIterator
 import java.lang.ref.SoftReference
 import org.arakhne.afc.math.MathConstants
 import org.arakhne.afc.math.MathUtil
@@ -38,8 +37,8 @@ import org.arakhne.afc.math.geometry.d2.afp.Rectangle2afp
 import org.arakhne.afc.math.geometry.d2.afp.RoundRectangle2afp
 import org.arakhne.afc.math.geometry.d2.afp.Segment2afp
 import org.arakhne.afc.math.geometry.d2.afp.Triangle2afp
-import org.arakhne.afc.math.geometry.d2.d.AbstractShape2d
 import org.arakhne.afc.math.geometry.d2.d.Circle2d
+import org.arakhne.afc.math.geometry.d2.d.OrientedRectangle2d
 import org.arakhne.afc.math.geometry.d2.d.Point2d
 import org.arakhne.afc.math.geometry.d2.d.Rectangle2d
 import org.arakhne.afc.math.geometry.d2.d.Shape2d
@@ -49,13 +48,13 @@ import org.arakhne.afc.math.geometry.d2.d.Vector2d
 /*
  * Motion hulls wrap actions and represent "future" position 
  */
-class MotionHull extends AbstractShape2d<MotionHull> {
+class MotionHull extends OrientedRectangle2d {
 
 	val start = new Point2d
 	val direction = new Vector2d
 	val size : double
 	
-	var bounds : SoftReference<Rectangle2d> = null
+	var bounds : SoftReference<OrientedRectangle2d> = null
 	
 	/**
 	 * @param point
@@ -107,30 +106,33 @@ class MotionHull extends AbstractShape2d<MotionHull> {
 	 */
 	def intersects(s : Shape2d<?>) : boolean {
 		if (s instanceof MotionHull) {
-			var end = this.start + this.direction
-			var end2 = (s as MotionHull).start + (s as MotionHull).direction
-//			var d = MathUtil::distanceSegmentToSegment(this.start, end, s.start, end2)
-			var d = Segment2afp.calculatesDistanceSquaredSegmentSegment(this.start.x,this.start.y, end.x,end.y, (s as MotionHull).start.x,(s as MotionHull).start.y, end2.x,end2.y)
-			return d < (this.size + (s as MotionHull).size)
-//			return getBounds.intersects(s.getBounds)
+//			var end = this.start + this.direction
+//			var end2 = (s as MotionHull).start + (s as MotionHull).direction
+////			var d = MathUtil::distanceSegmentToSegment(this.start, end, s.start, end2)
+//			var d = Segment2afp.calculatesDistanceSquaredSegmentSegment(this.start.x,this.start.y, end.x,end.y, (s as MotionHull).start.x,(s as MotionHull).start.y, end2.x,end2.y)
+//			return d < (this.size + (s as MotionHull).size)
+////			return getBounds.intersects(s.getBounds)
+			return getBounds.intersects(s.getBounds as OrientedRectangle2d)
 		}
 		if (s instanceof Rectangle2d) {
-			var end = this.start + this.direction
-			var pa = new Point2d(s.minX, s.maxY)
-			var pb = new Point2d(s.maxX, s.minY)
-			var d1 = Segment2afp.calculatesDistanceSquaredSegmentSegment(s.minX, s.minY, pa.x, pa.y, this.start.x, this.start.y, end.x, end.y)
-			var d2 = Segment2afp.calculatesDistanceSquaredSegmentSegment(pa.x, pa.y, s.maxX, s.maxY, this.start.x, this.start.y, end.x, end.y)
-			var d3 = Segment2afp.calculatesDistanceSquaredSegmentSegment(s.maxX, s.maxY, pb.x, pb.y, this.start.x, this.start.y, end.x, end.y)
-			var d4 = Segment2afp.calculatesDistanceSquaredSegmentSegment(pb.x, pb.y, s.minX, s.minY, this.start.x, this.start.y, end.x, end.y)
-			var d = MathUtil::min(d1, d2, d3, d4)
-			return d < this.size
+//			var end = this.start + this.direction
+//			var pa = new Point2d(s.minX, s.maxY)
+//			var pb = new Point2d(s.maxX, s.minY)
+//			var d1 = Segment2afp.calculatesDistanceSquaredSegmentSegment(s.minX, s.minY, pa.x, pa.y, this.start.x, this.start.y, end.x, end.y)
+//			var d2 = Segment2afp.calculatesDistanceSquaredSegmentSegment(pa.x, pa.y, s.maxX, s.maxY, this.start.x, this.start.y, end.x, end.y)
+//			var d3 = Segment2afp.calculatesDistanceSquaredSegmentSegment(s.maxX, s.maxY, pb.x, pb.y, this.start.x, this.start.y, end.x, end.y)
+//			var d4 = Segment2afp.calculatesDistanceSquaredSegmentSegment(pb.x, pb.y, s.minX, s.minY, this.start.x, this.start.y, end.x, end.y)
+//			var d = MathUtil::min(d1, d2, d3, d4)
+//			return d < this.size
+			return getBounds.intersects(s as Rectangle2d)
 //			return this.getBounds.intersects(s as Rectangle2d)
 		}
 		if (s instanceof Circle2d) {
-			var center = s.center
-			var end = this.start + this.direction
-			//return MathUtil::distancePointToSegment(center, this.start, end) < (this.size + s.radius)
-			return Segment2afp.calculatesDistanceSegmentPoint(this.start.x, this.start.y, end.x, end.y, center.x, center.y) < (this.size + s.radius)
+//			var center = s.center
+//			var end = this.start + this.direction
+//			//return MathUtil::distancePointToSegment(center, this.start, end) < (this.size + s.radius)
+//			return Segment2afp.calculatesDistanceSegmentPoint(this.start.x, this.start.y, end.x, end.y, center.x, center.y) < (this.size + s.radius)
+			return getBounds.intersects(s as Circle2d)
 		}
 		throw new IllegalArgumentException
 	}
@@ -153,13 +155,14 @@ class MotionHull extends AbstractShape2d<MotionHull> {
 				this.size)
 	}
 
-	def getBounds : Rectangle2d {
+	def getBounds : OrientedRectangle2d {
 		var bb = this.bounds?.get
 		if (bb === null) {
 			var x = this.start.x + this.direction.x
 			var y = this.start.y + this.direction.y
 			var d = this.direction.clone
 			d.turn(MathConstants.DEMI_PI)
+			d.setLength(size/2)
 			
 			var x1 = this.start.x + d.x
 			var y1 = this.start.y + d.y
@@ -170,11 +173,15 @@ class MotionHull extends AbstractShape2d<MotionHull> {
 			var x4 = x - d.x
 			var y4 = y - d.y
 			
-			bb = new Rectangle2d(
-					MathUtil::min(x1, x2, x3, x4),
-					MathUtil::min(y1, y2, y3, y4),
-					MathUtil::max(x1, x2, x3, x4),
-					MathUtil::max(y1, y2, y3, y4))
+			bb = new OrientedRectangle2d(new Point2d(x,y),this.direction,this.direction.length * 2,this.size)
+//			bb = new Rectangle2d(
+//					MathUtil::min(x1, x2, x3, x4),
+//					MathUtil::min(y1, y2, y3, y4),
+//					this.direction.length,
+//					this.size
+//					)
+//					MathUtil::max(x1, x2, x3, x4),
+//					MathUtil::max(y1, y2, y3, y4))
 			this.bounds = new SoftReference(bb)
 		}
 		return bb
@@ -276,10 +283,6 @@ class MotionHull extends AbstractShape2d<MotionHull> {
 		throw new UnsupportedOperationException("TODO: auto-generated method stub")
 	}
 	
-	override equalsToShape(shape : MotionHull) : boolean {
-		throw new UnsupportedOperationException("TODO: auto-generated method stub")
-	}
-	
 	override getClosestPointTo(point : Point2D<?, ?>) : Point2d {
 		throw new UnsupportedOperationException("TODO: auto-generated method stub")
 	}
@@ -308,17 +311,13 @@ class MotionHull extends AbstractShape2d<MotionHull> {
 		throw new UnsupportedOperationException("TODO: auto-generated method stub")
 	}
 	
-	override set(shape : MotionHull) {
-		throw new UnsupportedOperationException("TODO: auto-generated method stub")
-	}
-	
 	override toBoundingBox(box : Rectangle2d) {
 		throw new UnsupportedOperationException("TODO: auto-generated method stub")
 
 	}
 	
 	def toBoundingBox : Rectangle2d {
-		getBounds
+		throw new UnsupportedOperationException("TODO: auto-generated method stub")
 	}
 	
 }

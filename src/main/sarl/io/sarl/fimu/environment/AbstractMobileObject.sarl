@@ -188,7 +188,7 @@ abstract class AbstractMobileObject extends AbstractSituatedObject implements IM
 
 		// Update the position
 		addPosition(r.x, r.y)
-		System.out.println("New position (x:  "+position+")")
+//		System.out.println("New position (x:  "+position+")")
 		// Update dynamic properties
 		if (simulationDuration > 0) {
 			this.linearMove.set(r.x, r.y)

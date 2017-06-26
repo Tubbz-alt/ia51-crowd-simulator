@@ -83,7 +83,7 @@ abstract class AbstractArraySpatialTreeNode<N extends AbstractArraySpatialTreeNo
 		}
 		var selectedChild : N
 		for (child : this.children) {
-			if (child.bounds.intersects(dataShape)) {
+			if (child.bounds.intersects(dataShape) || child.bounds.contains(dataShape)) {
 				if (selectedChild !== null) {
 					// The object is intersecting two or more children
 					return false
@@ -142,7 +142,7 @@ abstract class AbstractArraySpatialTreeNode<N extends AbstractArraySpatialTreeNo
 		}
 		var selectedChild : N
 		for (child : this.children) {
-			if (child.bounds.intersects(dataShape)) {
+			if (child.bounds.intersects(dataShape) || child.bounds.contains(dataShape)) {
 				if (selectedChild !== null) {
 					// The object is intersecting two or more children
 					return false
