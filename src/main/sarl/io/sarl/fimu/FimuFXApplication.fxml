@@ -23,5 +23,6 @@
          <tooltip>
             <Tooltip text="%StopButtonTooltip" />
          </tooltip></Button>
+      <Button fx:id="showRadiuses_button" disable="false" layoutX="26.0" layoutY="130.0" mnemonicParsing="false" onAction="#actionShowRadiuses" text="%ShowRadiusesButton"></Button>
    </children>
 </Pane>

@@ -1,6 +1,3 @@
-/** 
- * 
- */
 package io.sarl.fimu.environment
 
 import io.sarl.fimu.environment.frustum.CircleFrustum
@@ -160,58 +157,19 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 		for (action : actionTree.data) {
 			var obj = action.object
 			if (!action.empty && obj !== null) {
-				
-					/* I think that sometimes, objects are not inserted back into the tree */
-					var nb = this.model.data.size
-					var tmp = this.model.clone
-					var tmodel = tmp.get(0)
-					
-					/* Remove object from the tree, make it move and then put it back in the correct child
+				/* I think that sometimes, objects are not inserted back into the tree 
+				 * Remove object from the tree, make it move and then put it back in the correct child
 				 */
-				 var b : boolean
-					synchronized (this.model){
-						b = this.model.removeData(obj)
-						obj.move(action.linearMotion, action.angularMotion)
-						b = this.model.addData(obj)
-					}
-				// TODO assert (b) : "Object cannot be added in quadtree: " + obj;
+				var b : boolean
+				synchronized (this.model){
+					b = this.model.removeData(obj)
+					obj.move(action.linearMotion, action.angularMotion)
+					b = this.model.addData(obj)
+				}
 			}
 		}
 	}
 
-	private def detectConflicts(actionTree : QuadTree<SituatedArtifact>) {
-//		var iterator = new LeafTreeIterator(actionTree.root)
-//		while (iterator.hasNext) {
-//			var node = iterator.next
-//			var influences : List<SituatedArtifact> = new ArrayList
-//			do {
-//				influences += node.data
-//				node = node.parent
-//			} while (node !== null)
-//			for (i : 0 ..< influences.size) {
-//				var inf1 = influences.get(i)
-//				if (!inf1.isEmpty) {
-//					var s1 = inf1.shape as MotionHull
-//					for (obj : this.allObjects) {
-//						if ((!(obj instanceof AgentBody)) && (s1.intersects(obj.shape))) {
-//							inf1.clear
-//							return
-//						}
-//					}
-//					if (!inf1.empty && i < influences.size - 1) {
-//						for (j : (i + 1) ..< influences.size) {
-//							var inf2 = influences.get(j)
-//							if (!inf2.empty) {
-//								if (s1.intersects(inf2.shape)) {
-//									inf2.clear
-//								}
-//							}
-//						}
-//					}
-//				}
-//			}
-//		}
-	}
 	/* Detect the conflicts between all the motion influences
 	 * The broad detection part should have already been done. 
 	 * SAT stands for Separation Axis Theorem
@@ -312,16 +270,6 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 			}
 		}
 
-		/*
-		 * Compute endogenous behavior influences : anything that is fired by the environment itself, and not an agent
-		 */
-//		for (i : computeEndogenousBehaviorInfluences) {
-//			if (i instanceof MotionInfluence) {
-//				motionInfluences += i
-//			} else if (!(i instanceof KillInfluence)) {
-//				otherInfluences += i
-//			}
-		// }
 		if (!motionInfluences.isEmpty || !otherInfluences.isEmpty) {
 			//Only apply motion Influences for now
 			applyInfluences(motionInfluences, otherInfluences, this.timeManager)
@@ -373,21 +321,21 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 		if (obj instanceof AbstractMobileObject) {
 			return obj.computeSteeringTranslation(move, clock)
 		}
-		throw new IllegalArgumentException("obj") 			// $NON-NLS-1$
+		throw new IllegalArgumentException("obj")
 	}
 
 	protected final def computeKinematicTranslation(obj : IMobileObject, move : Vector2d, clock : TimeManager) : Vector2d {
 		if (obj instanceof AbstractMobileObject) {
 			return obj.computeKinematicTranslation(move, clock)
 		}
-		throw new IllegalArgumentException("obj") 	// $NON-NLS-1$
+		throw new IllegalArgumentException("obj")
 	}
 	
 	protected final def computeKinematicRotation(obj : IMobileObject, move : double, clock : TimeManager) : double {
 		if (obj instanceof AbstractMobileObject) {
 			return obj.computeKinematicRotation(move, clock)
 		}
-		throw new IllegalArgumentException("obj") 	// $NON-NLS-1$ 
+		throw new IllegalArgumentException("obj")
 	}
 
 	protected final def move(obj : IMobileObject, instantTranslation : Vector2d, instantRotation : double) {

@@ -1,15 +1,8 @@
 package io.sarl.fimu.agents
 
-import io.sarl.core.AgentKilled
-import io.sarl.core.AgentSpawned
-import io.sarl.core.ContextJoined
-import io.sarl.core.ContextLeft
 import io.sarl.core.DefaultContextInteractions
-import io.sarl.core.Destroy
 import io.sarl.core.Initialize
 import io.sarl.core.Logging
-import io.sarl.core.MemberJoined
-import io.sarl.core.MemberLeft
 import io.sarl.fimu.agents.actions.PhysicEnvironmentCapacity
 import io.sarl.fimu.agents.actions.PhysicEnvironmentSkill
 import io.sarl.fimu.agents.behaviors.KinematicSeekBehavior
@@ -17,8 +10,8 @@ import io.sarl.fimu.agents.behaviors.KinematicWanderBehavior
 import io.sarl.fimu.environment.Influence
 import io.sarl.fimu.environment.Percept
 import io.sarl.fimu.events.PerceptionEvent
-import java.util.List
 import java.util.ArrayList
+import java.util.List
 import java.util.UUID
 import org.arakhne.afc.math.geometry.d2.d.Point2d
 import org.arakhne.afc.math.geometry.d2.d.Vector2d
