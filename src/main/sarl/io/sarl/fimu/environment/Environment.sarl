@@ -393,27 +393,32 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 		// Different body shapes and colors based on whether the agent is a FimuGoer, a Scene, a Toilet, etc. 
 		var shape : Shape2d
 		var color : Color
+		var position : Point2d
 		if (type == "PELO" || type == "FIMUGOER")
 		{
 			shape = new Circle2d(0.0, 0.0, NORMAL_PERSON_SIZE)
 			color = Color.ANTIQUEWHITE
+			position = randomPosition(NORMAL_PERSON_SIZE, NORMAL_PERSON_SIZE)
 		}
 		else if (type == "TOILETS")
 		{
 			shape = new Rectangle2d(0.0, 0.0, NORMAL_TOILET_W, NORMAL_TOILET_H)
 			color = Color.DARKKHAKI
+			position = randomPosition(NORMAL_TOILET_W, NORMAL_TOILET_H)
 		}
 		else if (type == "DRINKSTAND" || type == "FOODSTAND")
 		{
 			shape = new Rectangle2d(0.0, 0.0, NORMAL_STAND_W, NORMAL_STAND_H)
 			color = Color.AQUAMARINE
+			position = randomPosition(NORMAL_STAND_W, NORMAL_STAND_H)
 		}
 		else if (type == "SCENE")
 		{
 			shape = new Rectangle2d(0.0, 0.0, NORMAL_SCENE_W, NORMAL_SCENE_H)
 			color = Color.CADETBLUE
+			position = randomPosition(NORMAL_SCENE_H, NORMAL_SCENE_H)
 		}
-		
+		System.out.println("Type : " + type + " Pos : " + Math.round(position.x) + ", " + Math.round(position.y))
 		var body = new AgentBody(id,    
 								 shape, // body
 								 3, // max linear speed m/s
@@ -455,6 +460,52 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 		var x = Math::random as double * this.width - NORMAL_PERSON_SIZE
 		var y = Math::random as double * this.height - NORMAL_PERSON_SIZE
 		return new Point2d(x, y)
+	}
+
+	protected def randomPosition(width : double, height : double) : Point2d {
+		var tmp_x = 0.0;
+		var tmp_y = 0.0;
+		var x : double;
+		var y : double;
+		var collision = false;
+
+		do {
+			tmp_x = Math::random as double * (this.width - 2*width) + width
+			tmp_y = Math::random as double * (this.height - 2*height) + height
+			do {
+				collision = false;
+				for (body : agentBodies) {
+					if (collisionDetection(new Point2d(tmp_x, tmp_y), width, height, body.position,
+						body.shape.toBoundingBox.width, body.shape.toBoundingBox.height)) {
+						tmp_y += 50
+						collision = true;
+						break
+					}
+				}
+				if (collision == false) {
+					y = tmp_y;
+				} else {
+					tmp_y += 50
+				}
+
+			} while (y == 0.0 && tmp_y + height + 50 < this.height)
+			if (y != 0.0) {
+				x = tmp_x
+			}
+		} while (x == 0.0)
+
+		return new Point2d(x, y)
+	}
+
+	protected def collisionDetection(pos1 : Point2d, w1 : double, h1 : double, pos2 : Point2d, w2 : double,
+		h2 : double) : Boolean {
+		var offset = 10;
+		if (pos1.x + w1 < pos2.x - w2 - offset || pos1.x - w1 > pos2.x + w2 + offset ||
+			pos1.y + h1 < pos2.y - h2 - offset || pos1.y - h1 > pos2.y + h2 + offset) {
+			return false
+		} else {
+			return true
+		}
 	}
 
 	protected synchronized def addAgentBody(body : AgentBody, position : Point2d, direction : double) {
