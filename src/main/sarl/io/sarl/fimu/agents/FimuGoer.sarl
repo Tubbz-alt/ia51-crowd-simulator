@@ -85,6 +85,8 @@ agent FimuGoer {
 		info("The agent was started.")
 		
 		mayBeNeeded = new ArrayList<Need>
+		musicTaste = new MusicTaste
+		currentMood = new MusicTaste
 		randomMusicTaste
 		analyzeNeeds
 	}

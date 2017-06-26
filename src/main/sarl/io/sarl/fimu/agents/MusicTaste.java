@@ -24,6 +24,7 @@ class MusicTaste {
 	 * Set all vectors to a value (default: 0)
 	 */
 	MusicTaste() {
+		musicVectors = new HashMap<Genre, Integer>();
 		for (Genre g : Genre.values())
 		{
 			musicVectors.put(g, 0);
