@@ -369,7 +369,7 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 		{
 			shape = new Rectangle2d(0.0, 0.0, NORMAL_TOILET_W, NORMAL_TOILET_H)
 			color = Color.DARKKHAKI
-			position = new Point2d(width - NORMAL_TOILET_W -15, 10)
+			position = randomPosition(NORMAL_TOILET_W, NORMAL_TOILET_H)
 		}
 		else if (type == "DRINKSTAND" || type == "FOODSTAND")
 		{
@@ -381,9 +381,9 @@ def applyInfluences(motionInfluences : Collection<MotionInfluence>, otherInfluen
 		{
 			shape = new Rectangle2d(0.0, 0.0, NORMAL_SCENE_W, NORMAL_SCENE_H)
 			color = Color.CADETBLUE
-			position = new Point2d(200,0)
+			position = randomPosition(NORMAL_SCENE_W, NORMAL_SCENE_H)
 		}
-//		System.out.println("Type : " + type + " Pos : " + Math.round(position.x) + ", " + Math.round(position.y))
+		System.out.println("Type : " + type + " Pos : " + Math.round(position.x) + ", " + Math.round(position.y))
 		var body = new AgentBody(id,    
 								 shape, // body
 								 2, // max linear speed m/s
